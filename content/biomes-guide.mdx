@@ -1,0 +1,587 @@
+---
+title: Biomes Guide
+description: Create custom biomes with unique terrain, layers, and decorations
+---
+
+Biomes are the core terrain units in Iris. They define the look, feel, and behavior of specific areas in your world.
+
+## What is a Biome?
+
+A biome in Iris represents a distinct environment with:
+
+- Terrain height and shape
+- Block layers (surface, subsurface, stone)
+- Decorations (grass, flowers, trees)
+- Objects (structures, features)
+- Climate and effects
+
+## Creating Your First Biome
+
+<Steps>
+  <Step title="Create the JSON file">
+    Create a file in `biomes/` folder:
+    ```json
+    {
+      "name": "Custom Plains",
+      "derivative": "PLAINS",
+      "layers": [
+        {
+          "palette": [{ "block": "grass_block" }],
+          "minHeight": 1,
+          "maxHeight": 1
+        },
+        {
+          "palette": [{ "block": "dirt" }],
+          "minHeight": 3,
+          "maxHeight": 5
+        }
+      ],
+      "generators": [
+        {
+          "generator": "plains-terrain",
+          "min": 0,
+          "max": 12
+        }
+      ]
+    }
+    ```
+  </Step>
+  
+  <Step title="Add to a region">
+    Reference your biome in a region's `landBiomes`, `seaBiomes`, or `shoreBiomes` array.
+  </Step>
+  
+  <Step title="Test in-game">
+    Use `/iris goto <biome-name>` to teleport to your biome.
+  </Step>
+</Steps>
+
+## Essential Configuration
+
+### Basic Properties
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | String | Human-readable biome name (required) |
+| `derivative` | Biome | Vanilla biome for colors/grass (required) |
+| `vanillaDerivative` | Biome | Biome for vanilla structure spawning |
+| `rarity` | Integer | Weight in biome selection (default: 1) |
+| `color` | String | Hex color for maps (e.g., "#3498db") |
+
+### Terrain Generators
+
+**Generators define biome height** relative to sea level:
+
+```json
+{
+  "generators": [
+    {
+      "generator": "rolling-hills",
+      "min": -5,
+      "max": 25
+    }
+  ]
+}
+```
+
+Positive values = above sea level, negative = below (oceans).
+
+### Block Layers
+
+**Layers define what blocks appear** from surface downward:
+
+```json
+{
+  "layers": [
+    {
+      "palette": [
+        { "block": "grass_block", "weight": 1 }
+      ],
+      "minHeight": 1,
+      "maxHeight": 1,
+      "zoom": 1.0
+    },
+    {
+      "palette": [
+        { "block": "dirt", "weight": 10 },
+        { "block": "coarse_dirt", "weight": 1 }
+      ],
+      "minHeight": 3,
+      "maxHeight": 6
+    },
+    {
+      "palette": [
+        { "block": "stone" }
+      ],
+      "minHeight": 1,
+      "maxHeight": 64
+    }
+  ]
+}
+```
+
+**Layer Properties:**
+
+- `palette`: List of blocks with optional weights
+- `minHeight`/`maxHeight`: Thickness range of this layer
+- `zoom`: Noise scale for layer variation
+- `slopeCondition`: Only place on certain slopes
+
+### Mesa/Locked Layers
+
+```json
+{
+  "lockLayers": true,
+  "lockLayersMax": 7
+}
+```
+
+Creates mesa-like banding where layers don't follow terrain surface.
+
+### Sea Layers
+
+**For underwater biomes:**
+
+```json
+{
+  "seaLayers": [
+    {
+      "palette": [{ "block": "sand" }],
+      "minHeight": 1,
+      "maxHeight": 3
+    },
+    {
+      "palette": [{ "block": "gravel" }],
+      "minHeight": 2,
+      "maxHeight": 4
+    }
+  ]
+}
+```
+
+### Cave Ceiling Layers
+
+```json
+{
+  "caveCeilingLayers": [
+    {
+      "palette": [{ "block": "stone" }],
+      "minHeight": 1,
+      "maxHeight": 1
+    }
+  ]
+}
+```
+
+## Decorators
+
+Decorators add detail like grass, flowers, and small features:
+
+```json
+{
+  "decorators": [
+    {
+      "chance": 0.15,
+      "palette": [
+        { "block": "grass" },
+        { "block": "tall_grass" }
+      ],
+      "stackMin": 1,
+      "stackMax": 1
+    },
+    {
+      "chance": 0.05,
+      "palette": [
+        { "block": "poppy" },
+        { "block": "dandelion" }
+      ]
+    }
+  ]
+}
+```
+
+See [Decorators Guide](/decorators) for details.
+
+## Objects
+
+Objects place structures and features:
+
+```json
+{
+  "objects": [
+    {
+      "place": ["oak-tree", "birch-tree"],
+      "chance": 0.02,
+      "density": 3,
+      "mode": "PAINT"
+    }
+  ]
+}
+```
+
+See [Objects Guide](/objects-guide) for details.
+
+## Biome Children
+
+**Create sub-biomes** within a biome:
+
+```json
+{
+  "children": ["forest-hills", "flower-forest"],
+  "childStyle": {
+    "style": "CELLULAR_IRIS_DOUBLE",
+    "zoom": 1.0
+  },
+  "childShrinkFactor": 1.5
+}
+```
+
+- `children`: List of child biome names
+- `childStyle`: How children are distributed
+- `childShrinkFactor`: Scale of child biomes (higher = smaller)
+
+## Biome Scatter
+
+**Mix vanilla biome colors** in one Iris biome:
+
+```json
+{
+  "biomeScatter": ["PLAINS", "FOREST", "SUNFLOWER_PLAINS"],
+  "biomeStyle": {
+    "style": "SIMPLEX",
+    "zoom": 5.0
+  }
+}
+```
+
+**Sky scatter** (for 3D biome colors):
+
+```json
+{
+  "biomeSkyScatter": ["SWAMP", "DARK_FOREST"]
+}
+```
+
+## Custom Biomes (1.16.2+)
+
+**Create entirely custom biomes:**
+
+```json
+{
+  "customDerivitives": [
+    {
+      "id": "custom_biome",
+      "temperature": 0.8,
+      "humidity": 0.4,
+      "fogColor": "#C0D8FF",
+      "skyColor": "#78A7FF",
+      "waterColor": "#3F76E4",
+      "waterFogColor": "#050533"
+    }
+  ]
+}
+```
+
+## Advanced Features
+
+### Slope Walls & Slabs
+
+```json
+{
+  "wall": {
+    "palette": [{ "block": "stone" }]
+  },
+  "slab": {
+    "palette": [{ "block": "stone_slab" }]
+  }
+}
+```
+
+Iris places walls on steep cliffs and slabs on gentle slopes.
+
+### Carving
+
+```json
+{
+  "carving": {
+    "enabled": true,
+    "caveStyle": "NORMAL"
+  },
+  "carvingBiome": "cave-variant"
+}
+```
+
+Use `carvingBiome` to switch to a different biome underground.
+
+### Fluid Bodies
+
+```json
+{
+  "fluidBodies": {
+    "rivers": true,
+    "lakes": true,
+    "lakeChance": 0.1
+  }
+}
+```
+
+### Ore Generation
+
+```json
+{
+  "ores": [
+    {
+      "ore": "iron_ore",
+      "minHeight": -64,
+      "maxHeight": 64,
+      "chance": 0.3,
+      "size": 9
+    }
+  ]
+}
+```
+
+### Deposits
+
+```json
+{
+  "deposits": [
+    {
+      "type": "CLUSTER",
+      "material": "clay",
+      "rarity": 50,
+      "size": 33
+    }
+  ]
+}
+```
+
+### Entity Spawning
+
+```json
+{
+  "entitySpawners": ["passive-animals", "monsters"]
+}
+```
+
+### Effects
+
+```json
+{
+  "effects": [
+    {
+      "effect": "REGENERATION",
+      "strength": 1,
+      "interval": 100,
+      "chance": 0.1
+    },
+    {
+      "particleEffect": "HEART",
+      "particleCount": 5,
+      "interval": 20
+    }
+  ]
+}
+```
+
+### Loot Tables
+
+```json
+{
+  "loot": {
+    "tables": ["plains-loot", "common-loot"]
+  }
+}
+```
+
+### Block Drops
+
+```json
+{
+  "blockDrops": [
+    {
+      "block": "grass_block",
+      "drops": [
+        {
+          "item": "wheat_seeds",
+          "chance": 0.125
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Jigsaw Structures
+
+```json
+{
+  "jigsawStructures": [
+    {
+      "structure": "village_plains",
+      "rarity": 256
+    }
+  ]
+}
+```
+
+## Biome Types
+
+Iris infers biome type from terrain height:
+
+- **LAND**: Generators produce positive height
+- **SEA**: Generators produce negative height
+- **SHORE**: Transition between land and sea
+- **CAVE**: Underground biomes
+
+Use the appropriate region list:
+
+```json
+// In region file
+{
+  "landBiomes": ["plains", "forest"],
+  "seaBiomes": ["ocean", "deep-ocean"],
+  "shoreBiomes": ["beach"],
+  "caveBiomes": ["cave"]
+}
+```
+
+## Example Biomes
+
+### Desert
+
+```json
+{
+  "name": "Hot Desert",
+  "derivative": "DESERT",
+  "rarity": 2,
+  "layers": [
+    {
+      "palette": [{ "block": "sand" }],
+      "minHeight": 3,
+      "maxHeight": 8
+    },
+    {
+      "palette": [{ "block": "sandstone" }],
+      "minHeight": 5,
+      "maxHeight": 10
+    }
+  ],
+  "decorators": [
+    {
+      "chance": 0.01,
+      "palette": [{ "block": "dead_bush" }]
+    }
+  ],
+  "objects": [
+    {
+      "place": ["cactus"],
+      "chance": 0.005,
+      "density": 2
+    }
+  ],
+  "generators": [
+    {
+      "generator": "desert-dunes",
+      "min": 2,
+      "max": 15
+    }
+  ]
+}
+```
+
+### Ocean
+
+```json
+{
+  "name": "Deep Ocean",
+  "derivative": "DEEP_OCEAN",
+  "seaLayers": [
+    {
+      "palette": [{ "block": "gravel" }],
+      "minHeight": 1,
+      "maxHeight": 3
+    }
+  ],
+  "decorators": [
+    {
+      "chance": 0.05,
+      "palette": [{ "block": "kelp" }],
+      "stackMin": 3,
+      "stackMax": 12,
+      "partOf": "SEA_SURFACE"
+    }
+  ],
+  "generators": [
+    {
+      "generator": "ocean-floor",
+      "min": -45,
+      "max": -25
+    }
+  ]
+}
+```
+
+### Mountains
+
+```json
+{
+  "name": "Snowy Peaks",
+  "derivative": "SNOWY_SLOPES",
+  "layers": [
+    {
+      "palette": [{ "block": "snow_block" }],
+      "minHeight": 2,
+      "maxHeight": 6
+    },
+    {
+      "palette": [
+        { "block": "stone", "weight": 10 },
+        { "block": "andesite", "weight": 1 }
+      ],
+      "minHeight": 10,
+      "maxHeight": 30
+    }
+  ],
+  "wall": {
+    "palette": [{ "block": "stone" }]
+  },
+  "generators": [
+    {
+      "generator": "mountain-peaks",
+      "min": 45,
+      "max": 120
+    }
+  ]
+}
+```
+
+<Accordion title="FAQ">
+  <AccordionGroup>
+    <Accordion title="Why aren't my layers showing up?">
+      Check that `minHeight` and `maxHeight` allow enough depth. Layers are placed top-down from the surface.
+    </Accordion>
+    
+    <Accordion title="What's the difference between derivative and vanillaDerivative?">
+      `derivative` controls grass/foliage color. `vanillaDerivative` controls which vanilla structures can spawn. Use both to prevent desert temples in your custom ocean.
+    </Accordion>
+    
+    <Accordion title="Can I make floating island biomes?">
+      Yes! Use negative `min` values in generators and disable terrain below using layers with air blocks.
+    </Accordion>
+    
+    <Accordion title="How do I make underwater biomes?">
+      Set generators to negative values (below sea level) and add `seaLayers` instead of regular `layers`.
+    </Accordion>
+    
+    <Accordion title="What does rarity actually do?">
+      Higher rarity = less common. A biome with rarity 5 is 5x less common than one with rarity 1.
+    </Accordion>
+  </AccordionGroup>
+</Accordion>
+
+## Next Steps
+
+- Learn about [Decorators](/decorators) for surface detail
+- Place [Objects](/objects-guide) like trees and structures
+- Configure [Loot Tables](/loot-tables) for rewards

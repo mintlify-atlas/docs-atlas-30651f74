@@ -1,0 +1,711 @@
+---
+title: Loot Tables Guide
+description: Configure custom loot drops and treasure for chests, mobs, and objects
+---
+
+Loot tables define what items can be found in containers throughout your Iris worlds, from dungeon chests to fishing rewards.
+
+## What is a Loot Table?
+
+A loot table is a configuration that defines:
+
+- What items can drop
+- How rare each item is
+- How many items to select
+- Where items can appear (slot types)
+
+Loot tables can be referenced by dimensions, regions, biomes, and objects.
+
+## Creating a Loot Table
+
+<Steps>
+  <Step title="Create the JSON file">
+    Create a file in `loot/` folder:
+    ```json
+    {
+      "name": "Dungeon Loot",
+      "rarity": 1,
+      "minPicked": 2,
+      "maxPicked": 5,
+      "maxTries": 10,
+      "loot": [
+        {
+          "item": "diamond",
+          "minAmount": 1,
+          "maxAmount": 3,
+          "rarity": 10
+        },
+        {
+          "item": "iron_ingot",
+          "minAmount": 3,
+          "maxAmount": 8,
+          "rarity": 3
+        }
+      ]
+    }
+    ```
+  </Step>
+  
+  <Step title="Reference in configs">
+    Add to dimension, region, or biome:
+    ```json
+    {
+      "loot": {
+        "tables": ["dungeon-loot", "common-loot"]
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Use in objects">
+    Place chests in objects and Iris will populate them with your loot.
+  </Step>
+</Steps>
+
+## Loot Table Configuration
+
+### Basic Properties
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `name` | String | - | Human-readable name (required) |
+| `rarity` | Integer | 1 | Table selection weight (1 in X chance) |
+| `minPicked` | Integer | 1 | Minimum items to select |
+| `maxPicked` | Integer | 5 | Maximum items to select |
+| `maxTries` | Integer | 10 | Max attempts to generate loot |
+
+### How Tables Work
+
+1. Iris randomly picks between `minPicked` and `maxPicked` items
+2. For each pick, tries up to `maxTries` times to select valid loot
+3. Each loot entry has a `rarity` (higher = less common)
+4. Only items matching the slot type are selected
+
+## Loot Entries
+
+Each item in the `loot` array is an `IrisLoot` object:
+
+### Basic Loot Entry
+
+```json
+{
+  "item": "diamond_sword",
+  "minAmount": 1,
+  "maxAmount": 1,
+  "rarity": 20
+}
+```
+
+### Loot Properties
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `item` | String | Minecraft item ID |
+| `minAmount` | Integer | Minimum stack size |
+| `maxAmount` | Integer | Maximum stack size |
+| `rarity` | Integer | Drop rarity (higher = rarer) |
+| `slotTypes` | Enum | Where item can appear |
+
+### Slot Types
+
+Control where items can appear:
+
+```json
+{
+  "slotTypes": "CHEST"
+}
+```
+
+Options:
+- `CHEST`: Regular chest slots
+- `ARMOR`: Armor slots (for mobs)
+- `HAND`: Hand/weapon slots (for mobs)
+- `ANY`: Any slot type
+
+### Advanced Loot Properties
+
+**Enchantments:**
+
+```json
+{
+  "item": "diamond_sword",
+  "enchantments": [
+    {
+      "enchantment": "sharpness",
+      "minLevel": 1,
+      "maxLevel": 3
+    },
+    {
+      "enchantment": "unbreaking",
+      "level": 2
+    }
+  ]
+}
+```
+
+**Custom display name:**
+
+```json
+{
+  "item": "diamond_sword",
+  "name": "Legendary Blade",
+  "lore": [
+    "A weapon of great power",
+    "Forged in ancient times"
+  ]
+}
+```
+
+**Damage/durability:**
+
+```json
+{
+  "item": "iron_pickaxe",
+  "damage": 50
+}
+```
+
+**Custom item flags:**
+
+```json
+{
+  "item": "diamond_sword",
+  "flags": ["HIDE_ENCHANTS", "HIDE_ATTRIBUTES"]
+}
+```
+
+## Example Loot Tables
+
+### Common Dungeon Loot
+
+```json
+{
+  "name": "Common Dungeon",
+  "rarity": 1,
+  "minPicked": 3,
+  "maxPicked": 7,
+  "maxTries": 15,
+  "loot": [
+    {
+      "item": "coal",
+      "minAmount": 3,
+      "maxAmount": 8,
+      "rarity": 1
+    },
+    {
+      "item": "iron_ingot",
+      "minAmount": 1,
+      "maxAmount": 5,
+      "rarity": 3
+    },
+    {
+      "item": "gold_ingot",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "rarity": 5
+    },
+    {
+      "item": "bread",
+      "minAmount": 2,
+      "maxAmount": 5,
+      "rarity": 2
+    },
+    {
+      "item": "torch",
+      "minAmount": 4,
+      "maxAmount": 12,
+      "rarity": 1
+    }
+  ]
+}
+```
+
+### Treasure Hoard
+
+```json
+{
+  "name": "Ancient Treasure",
+  "rarity": 10,
+  "minPicked": 5,
+  "maxPicked": 10,
+  "maxTries": 20,
+  "loot": [
+    {
+      "item": "diamond",
+      "minAmount": 2,
+      "maxAmount": 5,
+      "rarity": 5
+    },
+    {
+      "item": "emerald",
+      "minAmount": 1,
+      "maxAmount": 4,
+      "rarity": 8
+    },
+    {
+      "item": "enchanted_golden_apple",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "rarity": 20
+    },
+    {
+      "item": "diamond_sword",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 10,
+      "enchantments": [
+        {
+          "enchantment": "sharpness",
+          "minLevel": 3,
+          "maxLevel": 5
+        },
+        {
+          "enchantment": "looting",
+          "minLevel": 1,
+          "maxLevel": 3
+        }
+      ]
+    },
+    {
+      "item": "diamond_chestplate",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 12,
+      "enchantments": [
+        {
+          "enchantment": "protection",
+          "minLevel": 2,
+          "maxLevel": 4
+        },
+        {
+          "enchantment": "unbreaking",
+          "level": 3
+        }
+      ]
+    },
+    {
+      "item": "golden_apple",
+      "minAmount": 2,
+      "maxAmount": 6,
+      "rarity": 4
+    }
+  ]
+}
+```
+
+### Fishing Rewards
+
+```json
+{
+  "name": "Fishing Loot",
+  "rarity": 1,
+  "minPicked": 1,
+  "maxPicked": 3,
+  "maxTries": 5,
+  "loot": [
+    {
+      "item": "cod",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "rarity": 1
+    },
+    {
+      "item": "salmon",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "rarity": 2
+    },
+    {
+      "item": "tropical_fish",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 5
+    },
+    {
+      "item": "pufferfish",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 8
+    },
+    {
+      "item": "bow",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 15,
+      "damage": 100
+    },
+    {
+      "item": "fishing_rod",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 12,
+      "enchantments": [
+        {
+          "enchantment": "luck_of_the_sea",
+          "minLevel": 1,
+          "maxLevel": 3
+        }
+      ]
+    },
+    {
+      "item": "leather_boots",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 20,
+      "damage": 50
+    }
+  ]
+}
+```
+
+### Desert Temple Loot
+
+```json
+{
+  "name": "Desert Temple",
+  "rarity": 2,
+  "minPicked": 4,
+  "maxPicked": 8,
+  "maxTries": 12,
+  "loot": [
+    {
+      "item": "gold_ingot",
+      "minAmount": 2,
+      "maxAmount": 7,
+      "rarity": 3
+    },
+    {
+      "item": "emerald",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "rarity": 8
+    },
+    {
+      "item": "diamond",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "rarity": 12
+    },
+    {
+      "item": "enchanted_book",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 15
+    },
+    {
+      "item": "saddle",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 10
+    },
+    {
+      "item": "golden_apple",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "rarity": 7
+    },
+    {
+      "item": "bone",
+      "minAmount": 4,
+      "maxAmount": 12,
+      "rarity": 2
+    },
+    {
+      "item": "rotten_flesh",
+      "minAmount": 3,
+      "maxAmount": 7,
+      "rarity": 1
+    }
+  ]
+}
+```
+
+### Wizard Tower Loot
+
+```json
+{
+  "name": "Wizard Tower",
+  "rarity": 5,
+  "minPicked": 3,
+  "maxPicked": 6,
+  "maxTries": 10,
+  "loot": [
+    {
+      "item": "enchanted_book",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "rarity": 3
+    },
+    {
+      "item": "experience_bottle",
+      "minAmount": 5,
+      "maxAmount": 15,
+      "rarity": 2
+    },
+    {
+      "item": "ender_pearl",
+      "minAmount": 2,
+      "maxAmount": 6,
+      "rarity": 5
+    },
+    {
+      "item": "blaze_powder",
+      "minAmount": 3,
+      "maxAmount": 8,
+      "rarity": 4
+    },
+    {
+      "item": "diamond",
+      "minAmount": 1,
+      "maxAmount": 4,
+      "rarity": 8
+    },
+    {
+      "item": "brewing_stand",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 10
+    },
+    {
+      "item": "potion",
+      "minAmount": 2,
+      "maxAmount": 5,
+      "rarity": 3
+    }
+  ]
+}
+```
+
+### Shipwreck Loot
+
+```json
+{
+  "name": "Shipwreck Treasure",
+  "rarity": 3,
+  "minPicked": 3,
+  "maxPicked": 8,
+  "maxTries": 12,
+  "loot": [
+    {
+      "item": "emerald",
+      "minAmount": 1,
+      "maxAmount": 5,
+      "rarity": 5
+    },
+    {
+      "item": "diamond",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "rarity": 15
+    },
+    {
+      "item": "gold_ingot",
+      "minAmount": 1,
+      "maxAmount": 10,
+      "rarity": 3
+    },
+    {
+      "item": "iron_ingot",
+      "minAmount": 1,
+      "maxAmount": 10,
+      "rarity": 2
+    },
+    {
+      "item": "heart_of_the_sea",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 50
+    },
+    {
+      "item": "paper",
+      "minAmount": 1,
+      "maxAmount": 12,
+      "rarity": 1
+    },
+    {
+      "item": "feather",
+      "minAmount": 2,
+      "maxAmount": 8,
+      "rarity": 2
+    },
+    {
+      "item": "map",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "rarity": 8
+    }
+  ]
+}
+```
+
+## Loot References
+
+### In Dimensions
+
+```json
+{
+  "loot": {
+    "tables": ["common-overworld", "rare-treasures"]
+  }
+}
+```
+
+### In Regions
+
+```json
+{
+  "loot": {
+    "tables": ["desert-loot", "oasis-treasures"]
+  }
+}
+```
+
+### In Biomes
+
+```json
+{
+  "loot": {
+    "tables": ["jungle-temple", "common-loot"]
+  }
+}
+```
+
+### In Objects
+
+Loot is automatically applied to chests in objects when they're placed.
+
+## Rarity System
+
+### Table Rarity
+
+```json
+{
+  "rarity": 5
+}
+```
+
+Means "1 in 5" chance this table is selected when multiple tables are available.
+
+### Item Rarity
+
+```json
+{
+  "rarity": 10
+}
+```
+
+Higher = less common. Items with rarity 20 are twice as rare as items with rarity 10.
+
+### Weighted Selection
+
+Iris uses weighted random selection:
+
+- Item with rarity 1 = weight 100%
+- Item with rarity 2 = weight 50%
+- Item with rarity 5 = weight 20%
+- Item with rarity 10 = weight 10%
+
+## Tips & Best Practices
+
+### Balance Rarity
+
+- Common items: rarity 1-3
+- Uncommon items: rarity 4-8
+- Rare items: rarity 9-15
+- Very rare items: rarity 16-30
+- Legendary items: rarity 30+
+
+### Set Appropriate Amounts
+
+```json
+{
+  "minPicked": 2,
+  "maxPicked": 6,
+  "maxTries": 10
+}
+```
+
+- Treasure chests: 5-10 items
+- Common chests: 3-7 items
+- Bonus chests: 1-3 items
+
+### Layer Your Tables
+
+Combine multiple tables for variety:
+
+```json
+{
+  "loot": {
+    "tables": [
+      "base-loot",       // Common items (rarity 1)
+      "uncommon-loot",   // Better items (rarity 3)
+      "rare-loot"        // Best items (rarity 10)
+    ]
+  }
+}
+```
+
+### Theme Your Loot
+
+Match loot to location:
+
+- **Desert**: Gold, sand, dead bushes, cactus
+- **Ocean**: Prismarine, kelp, fish, nautilus shells
+- **Nether**: Netherite scraps, ancient debris, fire charges
+- **Magic**: Enchanted books, potions, ender pearls
+
+### Enchantment Ranges
+
+```json
+{
+  "enchantments": [
+    {
+      "enchantment": "sharpness",
+      "minLevel": 1,
+      "maxLevel": 5
+    }
+  ]
+}
+```
+
+Provides variety in enchantment power.
+
+### Damaged Items
+
+```json
+{
+  "damage": 50
+}
+```
+
+Make items feel used/found. Value between 0 (new) and max durability.
+
+<Accordion title="FAQ">
+  <AccordionGroup>
+    <Accordion title="Can I have multiple loot tables in one area?">
+      Yes! List multiple tables in the `tables` array. Each has its own rarity for selection.
+    </Accordion>
+    
+    <Accordion title="How do I make super rare items?">
+      Use high rarity values (30+) and low `maxPicked` values. Also reference the table with high rarity in configs.
+    </Accordion>
+    
+    <Accordion title="Do loot tables work with vanilla structures?">
+      Iris loot tables are for Iris objects. Vanilla structures use vanilla loot tables.
+    </Accordion>
+    
+    <Accordion title="Can I add custom items from plugins?">
+      Yes, if the plugin registers items properly with Bukkit. Use the item's namespaced ID.
+    </Accordion>
+    
+    <Accordion title="What happens if maxTries runs out?">
+      Iris stops trying to add more items to that container. You may end up with fewer items than `maxPicked`.
+    </Accordion>
+  </AccordionGroup>
+</Accordion>
+
+## Next Steps
+
+- Place chests in [Objects](/objects-guide) to use loot tables
+- Configure [Entity Spawners](/entity-spawners) for mob equipment
+- Learn about [Biomes](/biomes-guide) to add thematic loot

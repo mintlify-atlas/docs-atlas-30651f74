@@ -1,80 +1,390 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick Start Guide"
+description: "Create your first Iris world in under 5 minutes"
 ---
 
-## Get started in three steps
+## Overview
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide walks you through creating your first Iris world, from installation to exploring custom terrain. By the end, you'll have a fully functional Iris-generated world running on your server.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Make sure you've completed the [Installation](/installation) steps before proceeding.
 </Note>
+
+## Create Your First World
+
+<Steps>
+  <Step title="Choose a Dimension Pack">
+    Iris worlds are created from **dimension packs**. The "overworld" pack provides vanilla-like generation with enhancements.
+    
+    View available dimensions:
+    ```bash
+    /iris download overworld
+    ```
+    
+    <Info>
+      Popular dimension packs:
+      - `overworld` - Enhanced vanilla-like generation
+      - `flat` - Flat world generation
+      - Custom packs from [IrisDimensions](https://github.com/IrisDimensions)
+    </Info>
+  </Step>
+  
+  <Step title="Create the World">
+    Use the `/iris create` command to generate a new world:
+    
+    ```bash
+    /iris create <world-name> dimension=<dimension> seed=<seed>
+    ```
+    
+    **Example**:
+    ```bash
+    /iris create myworld dimension=overworld seed=12345
+    ```
+    
+    <Accordion title="Command Parameters">
+      From `CommandIris.java:73-126`:
+      
+      | Parameter | Description | Default | Required |
+      |-----------|-------------|---------|----------|
+      | `world-name` | Name of the world to create | - | Yes |
+      | `dimension` | Dimension type (e.g., overworld) | default | No |
+      | `seed` | World generation seed | 1337 | No |
+      | `main-world` | Set as server's main world | false | No |
+      
+      **Reserved Names**: Cannot use "iris" or "benchmark" as world names.
+    </Accordion>
+    
+    <Tip>
+      Create as the main world:
+      ```bash
+      /iris create myworld dimension=overworld main-world=true
+      ```
+      This automatically sets your world as the server's default world on restart.
+    </Tip>
+  </Step>
+  
+  <Step title="Wait for World Creation">
+    Iris prepares your world:
+    
+    ```
+    [Iris] Creating world: myworld
+    [Iris] Dimension: overworld
+    [Iris] Installing dimension pack...
+    [Iris] Preparing spawn area...
+    [Iris] Successfully created your world!
+    ```
+    
+    <Warning>
+      Initial spawn preparation may take 1-5 minutes depending on your server hardware. This is normal for first-time world creation.
+    </Warning>
+  </Step>
+  
+  <Step title="Teleport to Your World">
+    Visit your newly created world:
+    
+    ```bash
+    /iris teleport myworld
+    ```
+    
+    Or teleport another player:
+    ```bash
+    /iris teleport myworld player=PlayerName
+    ```
+    
+    <Info>
+      From `CommandIris.java:145-168`, teleport is executed synchronously on the main thread for safety.
+    </Info>
+  </Step>
+</Steps>
+
+## Understanding World Generation
+
+### The IrisToolbelt API
+
+Under the hood, Iris uses the `IrisToolbelt` API for world creation:
+
+```java
+// From README.md:65-74
+IrisAccess access = IrisToolbelt.createWorld()
+    .name("myWorld")              // World name
+    .dimension("overworld")       // Dimension pack
+    .seed(69133742)               // World seed
+    .pregen(PregenTask            // Optional pregeneration
+        .builder()
+        .center(new Position2(0,0))  // Center point (regions)
+        .radius(4)                    // 4 region radius
+        .build())
+    .create();
+```
+
+### World Structure
+
+When created, Iris worlds have this structure:
+
+```
+myworld/
+├── iris/
+│   ├── pack/                 # Dimension pack files
+│   │   ├── dimensions/       # Dimension definitions
+│   │   ├── biomes/          # Biome configurations  
+│   │   ├── objects/         # Structures & objects
+│   │   └── regions/         # Region definitions
+│   └── engine.json          # Engine configuration
+├── region/                   # World chunk data
+├── playerdata/              # Player data
+└── level.dat                # World metadata
+```
+
+## Pregenerating Chunks (Recommended)
+
+Pregenerate chunks for better performance:
+
+<Steps>
+  <Step title="Start Pregeneration">
+    Use the `/iris pregen` command:
+    
+    ```bash
+    /iris pregen start radius=10
+    ```
+    
+    This pregenerates chunks in a radius around spawn.
+    
+    <Accordion title="Pregeneration Parameters">
+      | Parameter | Description | Unit |
+      |-----------|-------------|------|
+      | `radius` | Radius from center | Regions (1 region = 32×32 chunks) |
+      | `center` | Center coordinates | Region coordinates |
+      | `method` | Generation method | cached, hybrid, or turbo |
+      
+      **Example**:
+      ```bash
+      /iris pregen start radius=5 method=cached
+      ```
+    </Accordion>
+  </Step>
+  
+  <Step title="Monitor Progress">
+    Watch pregeneration progress:
+    
+    ```bash
+    /iris pregen status
+    ```
+    
+    Output shows:
+    - Chunks generated
+    - Chunks remaining  
+    - Generation speed (chunks/sec)
+    - Estimated time remaining
+  </Step>
+  
+  <Step title="Pause or Stop">
+    Control pregeneration:
+    
+    ```bash
+    # Pause pregeneration
+    /iris pregen pause
+    
+    # Resume pregeneration
+    /iris pregen resume
+    
+    # Stop completely
+    /iris pregen stop
+    ```
+  </Step>
+</Steps>
+
+<Info>
+  From `IrisSettings.java:149-155`, default pregeneration settings:
+  - Uses cache by default: `true`
+  - Max concurrency: `256` chunks
+  - Virtual threads: `false` (Java 21+ feature)
+</Info>
+
+## Exploring Your World
+
+### Check World Information
+
+<CodeGroup>
+```bash List All Worlds
+/iris worlds
+
+# Output:
+# Iris Worlds:
+# - myworld
+# Bukkit Worlds: 
+# - world
+# - world_nether
+```
+
+```bash World Height
+/iris height
+
+# Output:
+# -64 to 320
+# Total Height: 384
+```
+
+```bash World Metrics
+/iris metrics
+
+# Shows generation performance stats
+```
+</CodeGroup>
+
+### Using the What Command
+
+Identify biomes and features while exploring:
+
+```bash
+/iris what
+```
+
+Shows:
+- Current biome
+- Region information
+- Cave/structure data
+- Terrain height
+
+## Studio Mode (Advanced)
+
+For dimension pack development, use Studio mode:
+
+<Steps>
+  <Step title="Open Studio World">
+    Quick studio for overworld:
+    ```bash
+    /iris so
+    ```
+    
+    Or specify a dimension:
+    ```bash
+    /iris studio overworld
+    ```
+  </Step>
+  
+  <Step title="Edit & Hot-Reload">
+    Studio mode features:
+    - Real-time dimension editing
+    - Instant chunk regeneration  
+    - VS Code integration (if enabled)
+    - Weather/time disabled for testing
+    
+    <Info>
+      Studio settings from `IrisSettings.java:259-264`:
+      - Auto-open VS Code: `openVSCode: true`
+      - Disable time/weather: `disableTimeAndWeather: true`  
+      - Auto-start default studio: `autoStartDefaultStudio: false`
+    </Info>
+  </Step>
+  
+  <Step title="Test Changes">
+    After editing dimension files:
+    ```bash
+    /iris studio reload
+    ```
+    
+    New chunks generate with your changes!
+  </Step>
+</Steps>
+
+## Managing Worlds
+
+### Loading Existing Worlds
+
+Import an existing Iris world:
+
+```bash
+/iris loadWorld <world-name>
+```
+
+This registers the world in `bukkit.yml` and loads it.
+
+### Unloading Worlds
+
+```bash
+/iris unloadWorld <world-name>
+```
+
+### Removing Worlds
+
+<Warning>
+  This permanently deletes the world folder!
+</Warning>
+
+```bash
+# Remove world and delete files
+/iris remove <world-name>
+
+# Remove but keep files
+/iris remove <world-name> delete=false
+```
+
+From `CommandIris.java:244-305`, this command:
+1. Evacuates all players to another world
+2. Unloads the world
+3. Removes from bukkit.yml
+4. Optionally deletes world folder
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="World creation fails - folder already exists">
+    **Error**: `That folder already exists!`
+    
+    **Solution**: Choose a different world name or delete the existing folder:
+    ```bash
+    # WARNING: This deletes all world data!
+    rm -rf /path/to/server/worldname
+    ```
+  </Accordion>
+  
+  <Accordion title="Chunks not generating">
+    **Symptoms**: Stuck at "Loading terrain..." 
+    
+    **Solutions**:
+    1. Check server console for errors
+    2. Verify dimension pack installed: `ls plugins/Iris/packs/`
+    3. Increase server timeout in `spigot.yml`:
+       ```yaml
+       settings:
+         timeout-time: 120
+       ```
+    4. Allocate more RAM to server
+  </Accordion>
+  
+  <Accordion title="Cannot teleport to world">
+    **Error**: `The specified player does not exist` or world not found
+    
+    **Solutions**:
+    1. Verify world loaded: `/iris worlds`
+    2. Check exact world name (case-sensitive)
+    3. Ensure you have permission: `iris.command.teleport`
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you have a working Iris world:
+
+<CardGroup cols={2}>
+  <Card title="Optimize Performance" icon="gauge-high" href="/configuration">
+    Tune settings.json for your server
+  </Card>
+  
+  <Card title="Download More Packs" icon="download">
+    Explore dimension packs at IrisDimensions
+  </Card>
+  
+  <Card title="Create Custom Dimensions" icon="wand-magic-sparkles">
+    Learn dimension pack development
+  </Card>
+  
+  <Card title="Use the API" icon="code" href="/api/overview">
+    Integrate Iris into your plugins
+  </Card>
+</CardGroup>
+
+<Tip>
+  Join the [Iris Discord](https://discord.gg/3xxPTpT) to share your worlds and get help from the community!
+</Tip>

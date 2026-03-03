@@ -1,0 +1,527 @@
+---
+title: Caves & Ravines
+description: Create natural cave systems and dramatic ravines with procedural carving
+---
+
+Iris uses a sophisticated worm-based carving system to generate caves and ravines that feel organic and natural. These features can branch, fork, and create complex underground networks.
+
+## Caves
+
+Caves are defined in the `caves/` folder and use 3D worm generation to carve through terrain.
+
+### Basic Cave Configuration
+
+```json
+{
+  "worm": {
+    "xStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": -2,
+      "max": 2
+    },
+    "yStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": -1.5,
+      "max": 1.5
+    },
+    "zStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": -2,
+      "max": 2
+    },
+    "maxDistance": 128,
+    "maxIterations": 512,
+    "girth": {
+      "min": 3,
+      "max": 5,
+      "style": {
+        "type": "PERLIN"
+      }
+    }
+  },
+  "verticalRange": {
+    "min": 3,
+    "max": 255
+  }
+}
+```
+
+## Worm Configuration
+
+The worm is the pathfinding system that determines how caves and ravines travel through the world.
+
+### Movement Styles
+
+**`xStyle`, `yStyle`, `zStyle`**
+Control movement curvature on each axis using noise generators.
+
+```json
+"xStyle": {
+  "generator": { "type": "PERLIN" },
+  "min": -2,
+  "max": 2
+}
+```
+
+- **min/max**: Movement range in blocks per iteration
+- **generator**: Noise type (PERLIN, SIMPLEX, CELLULAR, etc.)
+
+Larger ranges create more chaotic, winding paths. Smaller ranges create straighter tunnels.
+
+### Distance & Iterations
+
+**`maxDistance`** (default: `128`)
+Maximum block distance the worm can travel from its starting point.
+
+```json
+"maxDistance": 256
+```
+
+<Warning>
+Distances over 1000 blocks can impact performance. Test thoroughly before using extreme values.
+</Warning>
+
+**`maxIterations`** (default: `512`)
+Number of steps the worm takes. More iterations = longer caves.
+
+```json
+"maxIterations": 1024
+```
+
+### Thickness (Girth)
+
+**`girth`**
+Defines cave tunnel thickness using a styled range.
+
+```json
+"girth": {
+  "min": 4,
+  "max": 8,
+  "style": {
+    "type": "SIMPLEX"
+  }
+}
+```
+
+Each worm maintains consistent thickness while traveling, but different worms vary based on this range.
+
+### Loop Prevention
+
+**`allowLoops`** (default: `false`)
+By default, worms stop when looping back into themselves. This is an optimization.
+
+```json
+"allowLoops": true
+```
+
+Enable this to allow worms to create complex, looping cave systems (slight performance cost).
+
+## Cave-Specific Options
+
+### Vertical Range
+
+**`verticalRange`**
+Constrains the Y levels where caves can generate.
+
+```json
+"verticalRange": {
+  "min": 10,
+  "max": 120
+}
+```
+
+The worm will terminate if it attempts to move outside this range.
+
+### Cave Shape
+
+**`shape`**
+Defines the 3D shape of the cave using noise-based masking.
+
+```json
+"shape": {
+  "noiseThreshold": 0.5,
+  "mask": []
+}
+```
+
+See IrisCaveShape.java:61 for advanced shape configuration.
+
+### Custom Biomes
+
+**`customBiome`**
+Force caves to generate a specific custom biome.
+
+```json
+"customBiome": "mushroom-cave"
+```
+
+### Forking
+
+**`fork`**
+Create branching cave systems using the carving system.
+
+```json
+"fork": {
+  "chance": 0.15,
+  "maxRecursion": 3,
+  "caves": ["small-cave-branch"],
+  "ravines": []
+}
+```
+
+See the Forking section below for details.
+
+## Ravines
+
+Ravines are vertical cuts through terrain defined in the `ravines/` folder. Unlike caves, they use 2D worm movement with vertical expansion.
+
+### Basic Ravine Configuration
+
+```json
+{
+  "worm": {
+    "xStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": -3,
+      "max": 3
+    },
+    "yStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": 0,
+      "max": 0
+    },
+    "zStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": -3,
+      "max": 3
+    },
+    "maxDistance": 96,
+    "maxIterations": 256
+  },
+  "depthStyle": {
+    "generator": { "type": "PERLIN" },
+    "min": 5,
+    "max": 18
+  },
+  "baseWidthStyle": {
+    "generator": { "type": "PERLIN" },
+    "min": 3,
+    "max": 6
+  },
+  "angle": 18,
+  "topAngle": 38,
+  "ribThickness": 3,
+  "nodeThreshold": 5
+}
+```
+
+### Ravine Worm
+
+Ravines use the same worm system as caves, but typically ignore Y movement:
+
+```json
+"worm": {
+  "yStyle": {
+    "generator": { "type": "PERLIN" },
+    "min": 0,
+    "max": 0
+  }
+}
+```
+
+This creates horizontal paths that are then expanded vertically.
+
+### Depth & Width
+
+**`depthStyle`**
+Determines how deep the ravine cuts.
+
+```json
+"depthStyle": {
+  "generator": { "type": "SIMPLEX" },
+  "min": 8,
+  "max": 25
+}
+```
+
+**`baseWidthStyle`**
+Controls the base width of the ravine.
+
+```json
+"baseWidthStyle": {
+  "generator": { "type": "PERLIN" },
+  "min": 4,
+  "max": 8
+}
+```
+
+### Angles
+
+**`angle`** (default: `18`, range: `1-100`)
+Angle at which the ravine widens from base toward the surface.
+
+```json
+"angle": 25
+```
+
+**`topAngle`** (default: `38`, range: `1-100`)
+Additional widening angle near the surface for dramatic openings.
+
+```json
+"topAngle": 45
+```
+
+Higher angles create wider, more dramatic ravines.
+
+### Rib Thickness
+
+**`ribThickness`** (default: `3`, range: `1-8`)
+Thickness of the vertical segments that make up the ravine walls.
+
+```json
+"ribThickness": 4
+```
+
+Thicker ribs create smoother walls but use more performance.
+
+### Node Threshold
+
+**`nodeThreshold`** (default: `5`)
+Minimum worm nodes required to generate a ravine. Reduces "ravine holes" where paths are too short.
+
+```json
+"nodeThreshold": 8
+```
+
+### Lava Level
+
+**`lavaLevel`** (default: `-1`)
+Fill the ravine with lava from the bottom up to this height (relative to bottom).
+
+```json
+"lavaLevel": 10
+```
+
+Set to `-1` to disable lava.
+
+### Custom Biomes
+
+**`customBiome`**
+Force a custom biome in the ravine.
+
+```json
+"customBiome": "desert-canyon"
+```
+
+### Forking
+
+**`fork`**
+Ravines can spawn additional caves or ravines along their path.
+
+```json
+"fork": {
+  "chance": 0.1,
+  "maxRecursion": 2,
+  "caves": ["small-cave"],
+  "ravines": ["small-ravine"]
+}
+```
+
+## Forking & Carving
+
+Both caves and ravines support forking to create complex networks.
+
+### Fork Configuration
+
+```json
+"fork": {
+  "chance": 0.2,
+  "maxRecursion": 4,
+  "caves": [
+    "branch-cave-small",
+    "branch-cave-medium"
+  ],
+  "ravines": [
+    "small-ravine"
+  ]
+}
+```
+
+**`chance`**
+Probability (0-1) of forking at each worm node.
+
+**`maxRecursion`**
+Maximum fork depth to prevent infinite recursion.
+
+**`caves`** / **`ravines`**
+Arrays of cave/ravine IDs that can spawn as forks.
+
+<Warning>
+High recursion depths with high fork chances can severely impact performance. Keep recursion under 5.
+</Warning>
+
+## Advanced Examples
+
+### Deep Cave System
+
+```json
+{
+  "worm": {
+    "xStyle": {
+      "generator": { "type": "SIMPLEX" },
+      "min": -1.5,
+      "max": 1.5
+    },
+    "yStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": -2,
+      "max": 2
+    },
+    "zStyle": {
+      "generator": { "type": "SIMPLEX" },
+      "min": -1.5,
+      "max": 1.5
+    },
+    "maxDistance": 200,
+    "maxIterations": 800,
+    "girth": {
+      "min": 5,
+      "max": 10,
+      "style": { "type": "CELLULAR" }
+    },
+    "allowLoops": true
+  },
+  "verticalRange": {
+    "min": 5,
+    "max": 60
+  },
+  "fork": {
+    "chance": 0.25,
+    "maxRecursion": 3,
+    "caves": [
+      "small-tunnel",
+      "crystal-cave"
+    ]
+  },
+  "customBiome": "deep-dark"
+}
+```
+
+### Dramatic Canyon
+
+```json
+{
+  "worm": {
+    "xStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": -4,
+      "max": 4
+    },
+    "yStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": 0,
+      "max": 0
+    },
+    "zStyle": {
+      "generator": { "type": "PERLIN" },
+      "min": -4,
+      "max": 4
+    },
+    "maxDistance": 150,
+    "maxIterations": 400
+  },
+  "depthStyle": {
+    "generator": { "type": "SIMPLEX" },
+    "min": 15,
+    "max": 30
+  },
+  "baseWidthStyle": {
+    "generator": { "type": "PERLIN" },
+    "min": 5,
+    "max": 9
+  },
+  "angle": 28,
+  "topAngle": 50,
+  "ribThickness": 4,
+  "nodeThreshold": 10,
+  "lavaLevel": -1,
+  "customBiome": "mesa-canyon"
+}
+```
+
+### Lava-Filled Ravine
+
+```json
+{
+  "worm": {
+    "maxDistance": 80,
+    "maxIterations": 200
+  },
+  "depthStyle": {
+    "min": 10,
+    "max": 20
+  },
+  "baseWidthStyle": {
+    "min": 3,
+    "max": 5
+  },
+  "angle": 15,
+  "topAngle": 30,
+  "lavaLevel": 8,
+  "nodeThreshold": 5,
+  "customBiome": "volcanic-fissure"
+}
+```
+
+## Performance Considerations
+
+1. **Limit maxDistance**: Keep under 300 for most use cases
+2. **Control iterations**: Higher iterations = longer generation time
+3. **Manage fork recursion**: Never exceed 5 levels of recursion
+4. **Optimize girth**: Extremely thick caves (>15) can lag during carving
+5. **Use vertical ranges**: Constrain Y levels to reduce wasted processing
+
+## Troubleshooting
+
+### Caves breaking the surface
+
+Adjust the worm's `yStyle` to reduce upward movement:
+```json
+"yStyle": {
+  "min": -1,
+  "max": 0.5
+}
+```
+
+Or constrain the vertical range:
+```json
+"verticalRange": {
+  "min": 5,
+  "max": 100
+}
+```
+
+### Ravines too short
+
+Increase `maxIterations` and decrease `nodeThreshold`:
+```json
+"maxIterations": 400,
+"nodeThreshold": 3
+```
+
+### Performance issues
+
+- Reduce `maxDistance` and `maxIterations`
+- Lower fork `chance` and `maxRecursion`
+- Decrease `girth` values
+- Simplify noise generators (use PERLIN instead of CELLULAR)
+
+### Water-filled caves when unintended
+
+The cave system automatically detects when it breaks above the fluid height and fills with water. Adjust `verticalRange` to keep caves below sea level:
+```json
+"verticalRange": {
+  "min": 3,
+  "max": 58
+}
+```

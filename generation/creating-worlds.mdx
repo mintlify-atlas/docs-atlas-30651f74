@@ -1,0 +1,229 @@
+---
+title: Creating Worlds
+description: Learn how to create Iris worlds programmatically and via commands using the IrisToolbelt API
+---
+
+## Overview
+
+Iris provides multiple ways to create worlds: through commands, programmatically via the API, or by configuring server settings. This guide covers all methods for world creation.
+
+## Creating Worlds via API
+
+### Using IrisToolbelt
+
+The `IrisToolbelt` class provides a fluent API for world creation through the `createWorld()` method, which returns an `IrisCreator` builder:
+
+```java
+import com.volmit.iris.core.tools.IrisToolbelt;
+import com.volmit.iris.core.tools.IrisCreator;
+import org.bukkit.World;
+
+// Create a basic world
+World world = IrisToolbelt.createWorld()
+    .name("myworld")
+    .dimension("overworld")
+    .seed(1337)
+    .create();
+```
+
+### IrisCreator Configuration Options
+
+The `IrisCreator` builder supports the following configuration methods:
+
+<ParamField path="name" type="String" default="irisworld">
+  The name of the world to create
+</ParamField>
+
+<ParamField path="dimension" type="String" default="overworld">
+  The dimension pack to use. Can be a folder name in the packs directory or a GitHub repository path (e.g., `IrisDimensions/overworld`)
+</ParamField>
+
+<ParamField path="seed" type="long" default="1337">
+  The world seed for terrain generation
+</ParamField>
+
+<ParamField path="studio" type="boolean" default="false">
+  Enable studio mode for hot-reloadable development
+</ParamField>
+
+<ParamField path="pregen" type="PregenTask" default="null">
+  Optional pregeneration task to run during world creation
+</ParamField>
+
+<ParamField path="sender" type="VolmitSender" default="null">
+  Sender to receive progress updates and automatic teleportation
+</ParamField>
+
+### Complete Example
+
+```java
+import com.volmit.iris.core.pregenerator.PregenTask;
+import com.volmit.iris.util.math.Position2;
+import com.volmit.iris.util.plugin.VolmitSender;
+
+public void createCustomWorld(VolmitSender sender) {
+    // Configure pregeneration area
+    PregenTask pregen = PregenTask.builder()
+        .center(new Position2(0, 0))
+        .radiusX(1000)
+        .radiusZ(1000)
+        .build();
+    
+    try {
+        World world = IrisToolbelt.createWorld()
+            .name("myirisworld")
+            .dimension("overworld")
+            .seed(42069)
+            .pregen(pregen)
+            .sender(sender)
+            .create();
+            
+        sender.sendMessage("World created successfully!");
+    } catch (Exception e) {
+        sender.sendMessage("Failed to create world: " + e.getMessage());
+    }
+}
+```
+
+<Warning>
+  The `create()` method **must not** be called on the main thread. Always execute world creation asynchronously to avoid server freezes.
+</Warning>
+
+## Dimension Discovery
+
+### Getting Dimensions
+
+The `getDimension()` method automatically searches for and downloads dimension packs:
+
+```java
+import com.volmit.iris.engine.object.IrisDimension;
+
+// Searches local packs folder first, then downloads if not found
+IrisDimension dimension = IrisToolbelt.getDimension("overworld");
+
+if (dimension != null) {
+    // Dimension found or downloaded successfully
+    String name = dimension.getName();
+    int minHeight = dimension.getMinHeight();
+    int maxHeight = dimension.getMaxHeight();
+}
+```
+
+### Supported Dimension Formats
+
+- **Local folder name**: `"overworld"` (searches in `plugins/Iris/packs/`)
+- **GitHub repository**: `"IrisDimensions/overworld"` (assumes master branch)
+- **GitHub with branch**: `"IrisDimensions/overworld/stable"`
+
+## World Validation
+
+### Checking if a World is an Iris World
+
+```java
+import org.bukkit.Bukkit;
+
+World world = Bukkit.getWorld("myworld");
+
+if (IrisToolbelt.isIrisWorld(world)) {
+    // Access the Iris generator
+    PlatformChunkGenerator generator = IrisToolbelt.access(world);
+    Engine engine = generator.getEngine();
+}
+```
+
+### Checking Studio Mode
+
+```java
+if (IrisToolbelt.isIrisStudioWorld(world)) {
+    // This is a studio world with hot-reload enabled
+}
+```
+
+## World Removal
+
+### Removing from Configuration
+
+To remove a world from `bukkit.yml`:
+
+```java
+import java.io.IOException;
+
+try {
+    boolean removed = IrisToolbelt.removeWorld(world);
+    if (removed) {
+        System.out.println("World removed from bukkit.yml");
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+## Bukkit.yml Configuration
+
+When creating non-studio worlds, Iris automatically registers them in `bukkit.yml`:
+
+```yaml
+worlds:
+  myworld:
+    generator: Iris:overworld
+```
+
+### Manual Configuration
+
+You can also manually add worlds to `bukkit.yml` before starting the server:
+
+<Steps>
+  <Step title="Edit bukkit.yml">
+    Open `bukkit.yml` in your server directory
+  </Step>
+  
+  <Step title="Add World Entry">
+    Add your world under the `worlds` section:
+    ```yaml
+    worlds:
+      myworld:
+        generator: Iris:overworld
+    ```
+  </Step>
+  
+  <Step title="Restart Server">
+    Restart your server to load the world
+  </Step>
+</Steps>
+
+## Creating Worlds via Commands
+
+While the API provides programmatic control, Iris also supports command-based world creation:
+
+```bash
+/iris create <world-name> <dimension>
+```
+
+Example:
+```bash
+/iris create myworld overworld
+```
+
+## Threading Considerations
+
+<Warning>
+  **Critical**: The `IrisCreator.create()` method throws an `IrisException` if called on the primary thread. Always use async execution:
+  
+  ```java
+  Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+      try {
+          World world = IrisToolbelt.createWorld()
+              .name("asyncworld")
+              .create();
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+  });
+  ```
+</Warning>
+
+## Related APIs
+
+- [Pregeneration](/generation/pregeneration) - Configure chunk pregeneration during world creation
+- [Studio Mode](/generation/studio-mode) - Enable hot-reload for dimension development
+- [Terrain Editing](/generation/terrain-editing) - Modify terrain after world creation

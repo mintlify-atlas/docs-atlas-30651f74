@@ -1,0 +1,62 @@
+---
+title: IrisEngineEvent
+description: Base event fired when Iris engine operations occur
+---
+
+## Overview
+
+`IrisEngineEvent` is the base event class for Iris engine-related events. This event is fired asynchronously when engine operations occur, providing access to the engine instance.
+
+## Event Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `engine` | `Engine` | The Iris engine instance associated with this event |
+
+## When It Fires
+
+This event fires during various engine operations and serves as a base class for more specific engine events like `IrisEngineHotloadEvent`.
+
+## Important Notes
+
+- This event is **asynchronous** (constructed with `super(true)`)
+- Cannot be cancelled
+- Provides direct access to the engine instance for inspection or modification
+
+## Event Handler Example
+
+```java
+import com.volmit.iris.core.events.IrisEngineEvent;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+
+public class EngineListener implements Listener {
+    
+    @EventHandler
+    public void onEngineEvent(IrisEngineEvent event) {
+        Engine engine = event.getEngine();
+        
+        // Access engine information
+        String dimension = engine.getDimension().getName();
+        World world = engine.getWorld();
+        
+        // Log or perform operations
+        System.out.println("Engine event for dimension: " + dimension);
+    }
+}
+```
+
+## Registering the Event
+
+Register your listener in your plugin's `onEnable()` method:
+
+```java
+@Override
+public void onEnable() {
+    getServer().getPluginManager().registerEvents(new EngineListener(), this);
+}
+```
+
+## Source Code Reference
+
+Location: `core/src/main/java/com/volmit/iris/core/events/IrisEngineEvent.java`

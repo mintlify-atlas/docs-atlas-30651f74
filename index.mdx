@@ -1,97 +1,140 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Introduction to Iris"
+description: "A powerful world generation framework for Minecraft Bukkit servers"
 ---
 
-## Setting up
+## Welcome to Iris
 
-Get your documentation site up and running in minutes.
+Iris is a world generator for Minecraft Bukkit servers that goes far beyond simple terrain generation. Created by Volmit Software (Arcane Arts), Iris provides a comprehensive framework for creating custom dimensions, biomes, and worlds with unprecedented control and flexibility.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+<Note>
+  Iris is more than just a dimension generator - it's a complete world generation framework with advanced features like custom biomes, structures, caves, and realistic terrain.
+</Note>
 
-## Make it yours
+## Key Features
 
-Design a docs site that looks great and empowers your users.
+Iris delivers professional-grade world generation capabilities:
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Custom Dimensions" icon="globe">
+    Create entirely custom dimensions with unique terrain, biomes, and generation rules. Load dimensions from the official IrisDimensions repository or create your own.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  
+  <Card title="Advanced Biome System" icon="mountain">
+    Generate realistic biomes with customizable parameters, including biome blending, child biomes, and dynamic placement based on temperature and moisture.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  
+  <Card title="Studio Mode" icon="code">
+    Real-time world editing and testing environment with hot-reload support. Edit your dimension packs while in-game and see changes instantly.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  
+  <Card title="Performance Optimized" icon="gauge-high">
+    Multi-threaded generation with configurable parallelism, intelligent caching systems, and support for virtual threads on Java 21.
   </Card>
-</Columns>
+  
+  <Card title="Pregeneration System" icon="layer-group">
+    Multiple pregeneration methods including cached, hybrid, and turbo modes. Generate worlds ahead of time with visual progress tracking.
+  </Card>
+  
+  <Card title="IrisToolbelt API" icon="toolbox">
+    Comprehensive API for developers to integrate Iris into their plugins, create worlds programmatically, and access engine internals.
+  </Card>
+</CardGroup>
 
-## Create beautiful pages
+## Architecture Overview
 
-Everything you need to create world-class documentation.
+Iris is built on a modular architecture that separates concerns and provides flexibility:
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
+```java
+package com.volmit.iris.core.tools;
+
+// Get IrisDataManager from a world
+IrisToolbelt.access(anyWorld).getCompound().getData();
+
+// Get Default Engine from world
+IrisToolbelt.access(anyWorld).getCompound().getDefaultEngine();
+
+// Get the engine at the given height
+IrisToolbelt.access(anyWorld).getCompound().getEngineForHeight(68);
+
+// IS THIS THING ON?
+boolean yes = IrisToolbelt.isIrisWorld(world);
+
+// GTFO for worlds (moves players to any other world)
+IrisToolbelt.evacuate(world);
+```
+
+## Server Compatibility
+
+Iris supports modern Minecraft server platforms:
+
+<Info>
+  **Supported Platforms**: Paper, Spigot, and Bukkit servers running Minecraft 1.20.1 - 1.21.11
+</Info>
+
+- **Minecraft Versions**: 1.20.1 through 1.21.11
+- **Server Types**: Paper (recommended), Spigot, Bukkit
+- **Java Version**: Java 21 or higher (required)
+- **API Version**: Compatible with modern Bukkit API
+
+## What's Next?
+
+Get started with Iris in minutes:
+
+<CardGroup cols={2}>
+  <Card 
+    title="Installation"
+    icon="download"
+    href="/installation"
   >
-    Use MDX to style your docs pages.
+    Install Iris on your Bukkit/Spigot/Paper server
   </Card>
-  <Card
-    title="Code samples"
+  
+  <Card 
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Create your first Iris world in under 5 minutes
+  </Card>
+  
+  <Card 
+    title="Configuration"
+    icon="sliders"
+    href="/configuration"
+  >
+    Learn about settings.json and performance tuning
+  </Card>
+  
+  <Card 
+    title="API Reference"
     icon="code"
-    href="/essentials/code"
+    href="/api/overview"
   >
-    Add sample code to demonstrate how to use your product.
+    Integrate Iris into your plugins
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Need inspiration?
+## Community & Support
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<CardGroup cols={3}>
+  <Card title="Discord" icon="discord" href="https://discord.gg/3xxPTpT">
+    Join the community for support and discussion
+  </Card>
+  
+  <Card title="Documentation" icon="book" href="https://docs.volmit.com/iris/">
+    Official documentation and guides
+  </Card>
+  
+  <Card title="GitHub" icon="github" href="https://github.com/IrisDimensions">
+    Source code and dimension packs
+  </Card>
+</CardGroup>
+
+<Tip>
+  Consider supporting Iris development by purchasing it on [SpigotMC](https://www.spigotmc.org/)! We work hard to make Iris the best it can be for everyone.
+</Tip>
+
+## License
+
+Iris is free software licensed under the GNU General Public License v3.0. You can redistribute it and/or modify it under the terms of the GPL as published by the Free Software Foundation.

@@ -1,0 +1,439 @@
+---
+title: Noise
+description: Understanding noise algorithms and their applications in Iris
+---
+
+## What is Noise?
+
+**Noise** in world generation refers to pseudo-random mathematical functions that create natural-looking patterns. Unlike true randomness (which looks chaotic), noise functions create smooth, continuous variation — perfect for terrain, clouds, and organic shapes.
+
+Iris uses noise for:
+- **Terrain height** (mountains, valleys, plains)
+- **Biome distribution** (where biomes spawn)
+- **Block variation** (stone mixed with andesite)
+- **Feature placement** (tree density, grass coverage)
+
+<Info>
+Think of noise as "controlled randomness." It's predictable (same seed = same output) but looks organic and natural.
+</Info>
+
+## Noise Dimensions
+
+### 2D Noise (X, Z)
+
+Used for:
+- Terrain height (Y-value based on X/Z position)
+- Biome placement
+- Surface decoration density
+
+```
+Input: (x, z)
+Output: value (typically -1.0 to 1.0)
+```
+
+### 3D Noise (X, Y, Z)
+
+Used for:
+- Caves (3D carving)
+- Ore veins
+- Density functions
+- 3D biome blending
+
+```
+Input: (x, y, z)
+Output: value (typically -1.0 to 1.0)
+```
+
+## Noise Types in Iris
+
+Iris provides multiple noise algorithms through the `NoiseStyle` enum:
+
+### Simplex Noise
+
+**SIMPLEX** - Smooth, organic noise
+
+```json
+{
+  "style": "SIMPLEX",
+  "zoom": 0.5
+}
+```
+
+**Characteristics:**
+- Very smooth gradients
+- No directional bias
+- Fast computation
+- Good for: Natural terrain, hills, general-purpose use
+
+### Perlin Noise
+
+**PERLIN** - Classic gradient noise
+
+```json
+{
+  "style": "PERLIN",
+  "zoom": 0.4
+}
+```
+
+**Characteristics:**
+- Slightly more grid-aligned than Simplex
+- Smooth transitions
+- Good for: Classic terrain, gentle slopes
+
+### Cellular Noise (Worley)
+
+**CELLULAR** - Cell-based patterns
+
+```json
+{
+  "style": "CELLULAR",
+  "zoom": 1.0
+}
+```
+
+**Characteristics:**
+- Creates distinct cells/regions
+- Sharp transitions
+- Voronoi diagram-based
+- Good for: Plateaus, mesas, biome borders, cracked terrain
+
+### Fractal Noise Variants
+
+#### Fractal Billow
+
+**FRACTAL_BILLOW_SIMPLEX** - Billowy, cloud-like
+
+```json
+{
+  "style": "FRACTAL_BILLOW_SIMPLEX",
+  "zoom": 0.3,
+  "fractalOctaves": 3
+}
+```
+
+**Characteristics:**
+- Rounded, puffy features
+- Multiple octaves for detail
+- Good for: Rolling hills, dunes, clouds
+
+#### Fractal Rigid Multi
+
+**FRACTAL_RIGID_MULTI_SIMPLEX** - Sharp ridges
+
+```json
+{
+  "style": "FRACTAL_RIGID_MULTI_SIMPLEX",
+  "zoom": 0.4,
+  "fractalOctaves": 4
+}
+```
+
+**Characteristics:**
+- Sharp, rigid ridges
+- Excellent for mountain ranges
+- Creates dramatic peaks
+- Good for: Mountains, canyons, sharp terrain
+
+#### Fractal FBM (Fractional Brownian Motion)
+
+**FRACTAL_FBM_SIMPLEX** - Layered detail
+
+```json
+{
+  "style": "FRACTAL_FBM_SIMPLEX",
+  "zoom": 0.5,
+  "fractalOctaves": 5
+}
+```
+
+**Characteristics:**
+- Standard fractal layering
+- Each octave adds detail
+- Good for: Natural terrain with fine detail
+
+## Noise Parameters
+
+### Zoom (Frequency)
+
+**Controls feature size**
+
+```json
+{
+  "zoom": 0.2  // Large features (continental scale)
+}
+```
+
+```json
+{
+  "zoom": 2.0  // Small features (rocky detail)
+}
+```
+
+<ParamField path="zoom" type="number" default="1.0">
+  Noise frequency/scale. Lower = larger features, higher = smaller features.
+  
+  Typical ranges:
+  - `0.05-0.2`: Continental/regional features
+  - `0.3-0.8`: Hills and valleys
+  - `1.0-3.0`: Local detail
+  - `4.0+`: Fine texture
+</ParamField>
+
+### Fractal Octaves
+
+**Adds layered detail**
+
+```json
+{
+  "fractalOctaves": 1  // Smooth, simple
+}
+```
+
+```json
+{
+  "fractalOctaves": 5  // Detailed, complex
+}
+```
+
+<ParamField path="fractalOctaves" type="integer" default="1">
+  Number of noise layers for fractal types. Each octave adds finer detail.
+  
+  - `1`: Simple, smooth noise
+  - `2-3`: Moderate detail (recommended)
+  - `4-6`: High detail (performance cost)
+  - `7+`: Very detailed (heavy performance impact)
+</ParamField>
+
+<Warning>
+Each octave roughly doubles computation time. Keep octaves under 6 for production worlds.
+</Warning>
+
+### Seed
+
+**Deterministic variation**
+
+```json
+{
+  "seed": 12345
+}
+```
+
+<ParamField path="seed" type="integer">
+  Custom seed for this noise layer. Same seed = same pattern. If omitted, uses world seed.
+</ParamField>
+
+## Advanced Techniques
+
+### Domain Warping (Fracture)
+
+Warp coordinate space before sampling noise:
+
+```json
+{
+  "style": "SIMPLEX",
+  "zoom": 0.5,
+  "fracture": {
+    "style": "SIMPLEX",
+    "zoom": 0.1,
+    "multiplier": 25
+  }
+}
+```
+
+**How it works:**
+1. Sample fracture noise at (x, z)
+2. Offset coordinates: x′ = x + fracture_x, z′ = z + fracture_z
+3. Sample main noise at (x′, z′)
+
+**Result:** Flowing, organic patterns instead of regular noise
+
+<Tip>
+Fracture is the secret to natural-looking terrain. Use it on most terrain generators with multiplier 15-35.
+</Tip>
+
+### Noise Interpolation
+
+Smooth blending between different noise values:
+
+```json
+{
+  "interpolator": "HERMITE"
+}
+```
+
+<ParamField path="interpolator" type="IrisInterpolator">
+  Smoothing function:
+  - `LINEAR`: Sharp transitions
+  - `HERMITE`: Smooth (default for most uses)
+  - `BEZIER`: Very smooth
+</ParamField>
+
+### Exponent (Noise Shaping)
+
+Shape the noise curve:
+
+```json
+{
+  "exponent": 2.0  // Favor lower values (flatter terrain)
+}
+```
+
+```json
+{
+  "exponent": 0.5  // Favor higher values (more peaks)
+}
+```
+
+<ParamField path="exponent" type="number" default="1.0">
+  Power applied to noise output. Values greater than 1.0 create more flat areas, less than 1.0 create more peaks.
+</ParamField>
+
+## Practical Examples
+
+### Natural Hills
+
+```json
+{
+  "style": "FRACTAL_BILLOW_SIMPLEX",
+  "zoom": 0.35,
+  "fractalOctaves": 3,
+  "fracture": {
+    "style": "SIMPLEX",
+    "zoom": 0.12,
+    "multiplier": 20
+  }
+}
+```
+
+**Why this works:**
+- Billow creates rounded hills
+- Fracture adds organic flow
+- 3 octaves provide natural detail
+
+### Dramatic Mountains
+
+```json
+{
+  "style": "FRACTAL_RIGID_MULTI_SIMPLEX",
+  "zoom": 0.5,
+  "fractalOctaves": 5,
+  "fracture": {
+    "style": "CELLULAR",
+    "zoom": 0.2,
+    "multiplier": 30
+  }
+}
+```
+
+**Why this works:**
+- Rigid multi creates sharp peaks
+- Cellular fracture adds angular warping
+- 5 octaves provide rocky detail
+
+### Plateaus and Mesas
+
+```json
+{
+  "style": "CELLULAR",
+  "zoom": 0.6,
+  "exponent": 1.5
+}
+```
+
+**Why this works:**
+- Cellular creates distinct regions
+- Exponent flattens the cells
+- Result: Flat-topped plateaus
+
+## Debugging Noise
+
+### Visualization Tips
+
+<Steps>
+  <Step title="Use Studio Mode">
+    `/iris studio` for real-time testing
+  </Step>
+  
+  <Step title="Fly high">
+    View terrain from Y=200+ to see large-scale patterns
+  </Step>
+  
+  <Step title="Adjust one parameter at a time">
+    Change zoom, then octaves, then fracture separately
+  </Step>
+  
+  <Step title="Use debug overlays">
+    Enable height debug in Iris settings
+  </Step>
+</Steps>
+
+### Common Issues
+
+<Accordion title="Terrain is too repetitive">
+  **Solution:** Add fracture or increase fractal octaves
+  
+  ```json
+  {
+    "fracture": {
+      "style": "SIMPLEX",
+      "zoom": 0.1,
+      "multiplier": 20
+    }
+  }
+  ```
+</Accordion>
+
+<Accordion title="Terrain is too chaotic">
+  **Solution:** Reduce zoom, decrease octaves
+  
+  ```json
+  {
+    "zoom": 0.3,  // Was 1.5
+    "fractalOctaves": 2  // Was 6
+  }
+  ```
+</Accordion>
+
+<Accordion title="Terrain is too flat">
+  **Solution:** Increase generator multiplier or use sharper noise
+  
+  ```json
+  {
+    "style": "FRACTAL_RIGID_MULTI_SIMPLEX",  // Was SIMPLEX
+    "multiplier": 30  // Was 10
+  }
+  ```
+</Accordion>
+
+<Accordion title="Performance is poor">
+  **Solution:** Reduce octaves, simplify fracture
+  
+  ```json
+  {
+    "fractalOctaves": 3,  // Was 7
+    "fracture": null  // Remove if not needed
+  }
+  ```
+</Accordion>
+
+## Best Practices
+
+<Tip>
+1. **Start with SIMPLEX**: It's fast and versatile
+2. **Use fracture for realism**: 80% of generators benefit from it
+3. **Keep octaves reasonable**: 2-4 for most cases
+4. **Test at different scales**: Fly high and walk on ground
+5. **Combine noise types**: SIMPLEX for base + CELLULAR for variation
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Generators" icon="mountain" href="/concepts/generators">
+    Apply noise in terrain generators
+  </Card>
+  <Card title="Expressions" icon="function" href="/advanced/expressions">
+    Use noise in mathematical expressions
+  </Card>
+</CardGroup>

@@ -1,0 +1,107 @@
+---
+title: Commands Overview
+description: Overview of all Iris commands for world generation and management
+---
+
+Iris provides a comprehensive set of commands for managing your Minecraft world generation. Commands are organized into several categories:
+
+## Command Categories
+
+### Main Commands (`/iris`)
+Core commands for world creation, management, and basic operations.
+- Create and remove worlds
+- Teleport between worlds
+- Download dimension packs
+- World management operations
+
+### Studio Commands (`/studio`)
+Advanced commands for dimension pack development and testing.
+- Open studio worlds for testing
+- Edit and hotload dimension files
+- Profile pack performance
+- Regenerate chunks for testing
+
+### Pregeneration Commands
+Three different pregeneration systems for different use cases:
+- **Standard Pregen** (`/pregen`) - GUI-based pregeneration with progress tracking
+- **Lazy Pregen** (`/lazypregen`) - Background pregeneration with rate limiting
+- **Turbo Pregen** (`/turbopregen`) - High-performance pregeneration
+
+### Developer Commands (`/developer`)
+Advanced commands for pack development, debugging, and testing.
+- Engine diagnostics
+- Object manipulation
+- Performance benchmarking
+- Structure generation
+
+### Object Commands (`/object`)
+Commands for creating, editing, and placing custom objects.
+- Create and save objects from selections
+- Paste and rotate objects
+- Analyze object composition
+- Convert schematics
+
+### Find Commands (`/find`)
+Teleport to and locate specific world features.
+- Find biomes, regions, and structures
+- Locate objects and points of interest
+
+### Edit Commands (`/edit`)
+Quickly open dimension files in your editor (studio mode only).
+- Edit biomes, regions, and dimensions
+- Edit caves and structures
+- Edit jigsaw pools and pieces
+
+### What Commands (`/what`)
+Inspect your current location and surroundings.
+- Identify biomes and regions
+- Check block properties
+- View markers in chunks
+
+## Command Aliases
+
+Many commands support shortened aliases:
+- `/iris` → `/ir`, `/irs`
+- `/studio` → `/std`, `/s`
+- `/object` → `/o`
+- `/find` → `/goto`
+- `/developer` → `/dev`
+
+## Permission Nodes
+
+All Iris commands require appropriate permissions. The base permission structure is:
+```
+iris.command.<command>.<subcommand>
+```
+
+For example:
+- `iris.command.create` - Create worlds
+- `iris.command.studio.open` - Open studio worlds
+- `iris.command.pregen.start` - Start pregeneration
+
+## Getting Help
+
+Use `/iris help` or add `help` to any command to see available subcommands and parameters:
+
+```
+/iris help
+/studio help
+/pregen help
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Main Commands" icon="globe" href="/commands/iris">
+    World creation and management
+  </Card>
+  <Card title="Studio Commands" icon="flask" href="/commands/studio">
+    Development and testing tools
+  </Card>
+  <Card title="Pregeneration" icon="map" href="/commands/pregeneration">
+    Pregenerate your worlds
+  </Card>
+  <Card title="Developer Tools" icon="code" href="/commands/developer">
+    Advanced development commands
+  </Card>
+</CardGroup>

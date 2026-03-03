@@ -1,0 +1,353 @@
+---
+title: Dimensions Guide
+description: Learn how to create custom dimensions in Iris for unique world generation
+---
+
+Dimensions are the highest level of organization in Iris. They define entire worlds with their own regions, biomes, and generation settings.
+
+## What is a Dimension?
+
+A dimension represents a complete world generator configuration. Each dimension contains:
+
+- Multiple regions that define areas of the world
+- Terrain generation settings
+- Biome placement rules
+- Environmental properties (overworld, nether, end)
+- Post-processing and decoration settings
+
+## Creating Your First Dimension
+
+<Steps>
+  <Step title="Create the JSON file">
+    Create a new file in `dimensions/` folder:
+    ```json
+    {
+      "name": "My Custom Dimension",
+      "regions": ["plains-region", "mountains-region"],
+      "fluidHeight": 63,
+      "dimensionHeight": {
+        "min": -64,
+        "max": 320
+      },
+      "mode": {
+        "type": "NORMAL"
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Configure regions">
+    Specify which regions your dimension will use in the `regions` array. These must match existing region files.
+  </Step>
+  
+  <Step title="Test your dimension">
+    Use `/iris create <world> <dimension-name>` to generate a world with your dimension.
+  </Step>
+</Steps>
+
+## Essential Configuration Fields
+
+### Basic Properties
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | String | Human-readable name of the dimension (required) |
+| `regions` | String[] | List of region file names to include (required) |
+| `environment` | Enum | World type: `NORMAL`, `NETHER`, or `THE_END` |
+| `version` | Integer | Dimension version for compatibility tracking |
+
+### Height & Terrain
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `dimensionHeight` | Range | -64 to 320 | Min and max Y coordinates for the dimension |
+| `fluidHeight` | Integer | 63 | Sea level / water placement height |
+| `logicalHeight` | Integer | 256 | Maximum teleport height |
+| `caveLavaHeight` | Integer | 8 | Lava lake height in caves |
+
+### Biome Placement
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `landBiomeStyle` | Style | CELLULAR_IRIS_DOUBLE | How land biomes are distributed |
+| `seaBiomeStyle` | Style | CELLULAR_IRIS_DOUBLE | How ocean biomes are distributed |
+| `shoreBiomeStyle` | Style | CELLULAR_IRIS_DOUBLE | How shore biomes are distributed |
+| `caveBiomeStyle` | Style | CELLULAR_IRIS_DOUBLE | How cave biomes are distributed |
+| `biomeZoom` | Double | 1.0 | Scale multiplier for biome sizes |
+| `landZoom` | Double | 1.0 | Scale for land mass distribution |
+| `seaZoom` | Double | 1.0 | Scale for ocean distribution |
+| `regionZoom` | Double | 1.0 | Scale for region sizes |
+
+### Advanced Generation
+
+**Coordinate Fracturing** creates natural-looking swirls and waves:
+
+```json
+{
+  "coordFractureDistance": 20,
+  "coordFractureZoom": 8,
+  "dimensionAngleDeg": 12
+}
+```
+
+- `coordFractureDistance` (0-8192): Distance that warps push terrain features
+- `coordFractureZoom` (0.0001-512): Frequency of warping patterns
+- `dimensionAngleDeg` (0-360): Rotation angle to reduce sharp corners
+
+### Continental Settings
+
+```json
+{
+  "landChance": 0.625,
+  "continentalStyle": {
+    "style": "CELLULAR_IRIS_DOUBLE",
+    "zoom": 1.0
+  },
+  "continentZoom": 1.0
+}
+```
+
+### Post-Processing
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `postProcessing` | Boolean | true | Enable post-processing |
+| `postProcessingSlabs` | Boolean | true | Add slabs for smooth terrain |
+| `postProcessingWalls` | Boolean | true | Add walls on steep slopes |
+| `decorate` | Boolean | true | Place decorators |
+
+### Block Palettes
+
+```json
+{
+  "rockPalette": [
+    { "block": "stone", "weight": 10 },
+    { "block": "andesite", "weight": 1 }
+  ],
+  "fluidPalette": [
+    { "block": "water" }
+  ],
+  "rockZoom": 5
+}
+```
+
+## Advanced Features
+
+### Bedrock Generation
+
+```json
+{
+  "bedrock": true
+}
+```
+
+Set to `false` to disable bedrock layer.
+
+### Tree Settings
+
+```json
+{
+  "treeSettings": {
+    "growthMultiplier": 1.0
+  }
+}
+```
+
+### Entity Spawning
+
+```json
+{
+  "entitySpawners": ["passive-animals", "hostile-mobs"],
+  "infiniteEnergy": false,
+  "maximumEnergy": 1000
+}
+```
+
+### Carving & Caves
+
+```json
+{
+  "carving": {
+    "enabled": true,
+    "caveStyle": "NORMAL"
+  },
+  "fluidBodies": {
+    "rivers": true,
+    "lakes": true
+  }
+}
+```
+
+### Ore Generation
+
+```json
+{
+  "ores": [
+    {
+      "ore": "coal_ore",
+      "minHeight": 0,
+      "maxHeight": 128,
+      "chance": 0.5
+    }
+  ]
+}
+```
+
+### Deposits
+
+```json
+{
+  "deposits": [
+    {
+      "type": "VEIN",
+      "material": "emerald_ore",
+      "rarity": 100
+    }
+  ]
+}
+```
+
+### Jigsaw Structures
+
+```json
+{
+  "jigsawStructures": [
+    {
+      "structure": "village",
+      "rarity": 256,
+      "separation": 8
+    }
+  ],
+  "jigsawStructureDivisor": 18
+}
+```
+
+### Strongholds
+
+```json
+{
+  "stronghold": "custom-stronghold",
+  "strongholdJumpDistance": 1280,
+  "maxStrongholds": 14
+}
+```
+
+### Loot Tables
+
+```json
+{
+  "loot": {
+    "tables": ["dungeon-loot", "treasure-loot"]
+  }
+}
+```
+
+### Block Drops
+
+```json
+{
+  "blockDrops": [
+    {
+      "block": "stone",
+      "drops": [
+        {
+          "item": "cobblestone",
+          "chance": 1.0
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Testing & Debug Options
+
+```json
+{
+  "focus": "test-biome",
+  "focusRegion": "test-region",
+  "debugChunkCrossSections": false,
+  "explodeBiomePalettes": false,
+  "studioMode": "NORMAL"
+}
+```
+
+- `focus`: Force only one biome to generate (testing)
+- `focusRegion`: Force only one region to generate (testing)
+- `debugChunkCrossSections`: Visualize chunk boundaries
+- `explodeBiomePalettes`: Separate palette layers visually
+
+## Common Configurations
+
+### Vanilla-like Overworld
+
+```json
+{
+  "name": "Overworld",
+  "environment": "NORMAL",
+  "regions": ["plains", "forests", "mountains", "oceans"],
+  "dimensionHeight": { "min": -64, "max": 320 },
+  "fluidHeight": 63,
+  "landChance": 0.625,
+  "biomeZoom": 1.0,
+  "bedrock": true
+}
+```
+
+### Floating Islands
+
+```json
+{
+  "name": "Sky Islands",
+  "environment": "NORMAL",
+  "regions": ["floating-islands"],
+  "dimensionHeight": { "min": 0, "max": 256 },
+  "fluidHeight": 0,
+  "bedrock": false,
+  "landChance": 0.3
+}
+```
+
+### Nether-like Dimension
+
+```json
+{
+  "name": "Infernal Realm",
+  "environment": "NETHER",
+  "regions": ["nether-wastes", "soul-sand-valley"],
+  "dimensionHeight": { "min": 0, "max": 128 },
+  "fluidHeight": 32,
+  "caveLavaHeight": 31,
+  "bedrock": true
+}
+```
+
+<Accordion title="FAQ">
+  <AccordionGroup>
+    <Accordion title="What's the difference between dimension and region?">
+      A dimension is the entire world generator, while a region is a collection of biomes within that dimension. Think of dimensions as continents and regions as countries.
+    </Accordion>
+    
+    <Accordion title="Can I have multiple dimensions?">
+      Yes! Create different JSON files for each dimension and use `/iris create` to generate separate worlds.
+    </Accordion>
+    
+    <Accordion title="How do I change world height?">
+      Modify the `dimensionHeight` min and max values. Note that Iris generates internally from 0 to (max - min), then shifts by the min height.
+    </Accordion>
+    
+    <Accordion title="What does biomeZoom do?">
+      Higher values create larger biomes. A value of 2.0 doubles the biome size, 0.5 halves it.
+    </Accordion>
+    
+    <Accordion title="Can I prevent explorer maps from crashing my server?">
+      Set `disableExplorerMaps: true` if you experience crashes when cartographers generate explorer maps.
+    </Accordion>
+  </AccordionGroup>
+</Accordion>
+
+## Next Steps
+
+- Learn about [Regions](/regions-guide) to organize your biomes
+- Explore [Biomes](/biomes-guide) for detailed terrain control
+- Add [Objects](/objects-guide) to place structures

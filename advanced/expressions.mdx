@@ -1,0 +1,461 @@
+---
+title: Expressions
+description: Create dynamic, mathematical world generation using Iris's expression system
+---
+
+Expressions allow you to use mathematical formulas to control world generation dynamically. They're powered by the Paralithic library and support variables, functions, and complex calculations.
+
+## Overview
+
+Expressions are defined in the `expressions/` folder and can be used anywhere Iris accepts procedural streams or generators. They provide fine-grained control over terrain generation through mathematical formulas.
+
+## Basic Expression
+
+```json
+{
+  "expression": "(x * 0.1) + (z * 0.1)",
+  "variables": [],
+  "functions": []
+}
+```
+
+This simple expression creates a diagonal gradient based on X and Z coordinates.
+
+## Built-in Variables
+
+All expressions have access to these inherited variables:
+
+- **`x`**: X coordinate
+- **`y`**: Y coordinate  
+- **`z`**: Z coordinate
+
+<Warning>
+Do not define custom variables with these names. They are reserved and will cause conflicts.
+</Warning>
+
+## Custom Variables
+
+Variables allow you to inject noise generators, engine streams, or static values into your expression.
+
+### Variable Structure
+
+```json
+"variables": [
+  {
+    "name": "terrain",
+    "styleValue": {
+      "type": "PERLIN",
+      "zoom": 0.5
+    }
+  },
+  {
+    "name": "height",
+    "staticValue": 128
+  }
+]
+```
+
+### Variable Types
+
+#### Style Value
+
+**`styleValue`**
+Use a noise generator as the variable's value.
+
+```json
+{
+  "name": "noise",
+  "styleValue": {
+    "type": "SIMPLEX",
+    "zoom": 1.0,
+    "fractal": {
+      "octaves": 3
+    }
+  }
+}
+```
+
+The variable will return noise values based on the current X/Y/Z coordinates.
+
+#### Static Value
+
+**`staticValue`** (default: `-1`)
+A constant number used when no other value is defined.
+
+```json
+{
+  "name": "seaLevel",
+  "staticValue": 62
+}
+```
+
+#### Engine Stream Value
+
+**`engineStreamValue`**
+Access internal Iris engine data streams.
+
+```json
+{
+  "name": "heightmap",
+  "engineStreamValue": "HEIGHT"
+}
+```
+
+Available engine stream types depend on your Iris version. See IrisEngineStreamType for options.
+
+#### Engine Value
+
+**`engineValue`**
+Access single values from the engine (not coordinate-based).
+
+```json
+{
+  "name": "fluidHeight",
+  "engineValue": "FLUID_HEIGHT"
+}
+```
+
+See IrisEngineValueType for available values.
+
+## Custom Functions
+
+Functions allow you to call noise generators or engine streams as functions within your expression.
+
+### Function Structure
+
+```json
+"functions": [
+  {
+    "name": "hills",
+    "args": 2,
+    "styleValue": {
+      "type": "PERLIN",
+      "zoom": 2.0
+    }
+  }
+]
+```
+
+This creates a function `hills(x, z)` that can be called in your expression.
+
+### Function Properties
+
+**`name`** (required)
+Function name used in the expression. Do not use `x`, `y`, or `z`.
+
+**`args`** (default: `2`, min: `2`)
+Number of arguments the function accepts.
+
+```json
+"args": 3
+```
+
+For 3D noise, use `args: 3`. For 2D, use `args: 2`.
+
+**`styleValue`**
+Noise generator to use for function values.
+
+```json
+"styleValue": {
+  "type": "CELLULAR",
+  "zoom": 0.3,
+  "fractal": {
+    "octaves": 4
+  }
+}
+```
+
+**`engineStreamValue`**
+Use an engine stream as the function output.
+
+```json
+"engineStreamValue": "BIOME_HEIGHT"
+```
+
+<Note>
+Engine stream functions always use 2 arguments regardless of the `args` setting.
+</Note>
+
+## Expression Syntax
+
+Expressions use standard mathematical notation with operator precedence.
+
+### Operators
+
+- Addition: `+`
+- Subtraction: `-`
+- Multiplication: `*`
+- Division: `/`
+- Parentheses: `()`
+- Exponentiation: `^`
+
+### Example Expressions
+
+#### Simple gradient
+```json
+"expression": "x * 0.01 + z * 0.01"
+```
+
+#### Using variables
+```json
+"expression": "height + (terrain * 50)"
+```
+
+Where `height` and `terrain` are defined variables.
+
+#### Using functions
+```json
+"expression": "hills(x * 0.5, z * 0.5) * mountains(x, z)"
+```
+
+Where `hills` and `mountains` are defined functions.
+
+#### Complex terrain
+```json
+"expression": "baseHeight + (continent(x * 0.001, z * 0.001) * 100) + (hills(x * 0.1, z * 0.1) * 20)"
+```
+
+## Complete Examples
+
+### Basic Heightmap
+
+```json
+{
+  "variables": [
+    {
+      "name": "baseHeight",
+      "staticValue": 64
+    },
+    {
+      "name": "terrain",
+      "styleValue": {
+        "type": "PERLIN",
+        "zoom": 0.5,
+        "fractal": {
+          "octaves": 4
+        }
+      }
+    }
+  ],
+  "functions": [],
+  "expression": "baseHeight + (terrain * 40)"
+}
+```
+
+This creates terrain varying 40 blocks above and below Y=64.
+
+### Multi-Layer Terrain
+
+```json
+{
+  "variables": [
+    {
+      "name": "seaLevel",
+      "staticValue": 62
+    }
+  ],
+  "functions": [
+    {
+      "name": "continents",
+      "args": 2,
+      "styleValue": {
+        "type": "PERLIN",
+        "zoom": 0.2
+      }
+    },
+    {
+      "name": "mountains",
+      "args": 2,
+      "styleValue": {
+        "type": "SIMPLEX",
+        "zoom": 1.5,
+        "fractal": {
+          "octaves": 6
+        }
+      }
+    },
+    {
+      "name": "hills",
+      "args": 2,
+      "styleValue": {
+        "type": "PERLIN",
+        "zoom": 3.0,
+        "fractal": {
+          "octaves": 3
+        }
+      }
+    }
+  ],
+  "expression": "seaLevel + (continents(x * 0.001, z * 0.001) * 60) + (mountains(x * 0.01, z * 0.01) * 80) + (hills(x * 0.05, z * 0.05) * 15)"
+}
+```
+
+This creates:
+- Continental-scale variation (±60 blocks)
+- Mountain ranges (±80 blocks)  
+- Rolling hills (±15 blocks)
+
+### Engine-Integrated Expression
+
+```json
+{
+  "variables": [
+    {
+      "name": "engineHeight",
+      "engineStreamValue": "HEIGHT"
+    },
+    {
+      "name": "fluidLevel",
+      "engineValue": "FLUID_HEIGHT"
+    }
+  ],
+  "functions": [
+    {
+      "name": "modifier",
+      "args": 2,
+      "styleValue": {
+        "type": "CELLULAR",
+        "zoom": 2.0
+      }
+    }
+  ],
+  "expression": "(engineHeight * 0.8) + (modifier(x, z) * 20)"
+}
+```
+
+This modifies the engine's base height with cellular noise.
+
+### Distance-Based Effect
+
+```json
+{
+  "variables": [
+    {
+      "name": "centerX",
+      "staticValue": 0
+    },
+    {
+      "name": "centerZ",
+      "staticValue": 0
+    },
+    {
+      "name": "baseHeight",
+      "staticValue": 100
+    }
+  ],
+  "functions": [],
+  "expression": "baseHeight - (((x - centerX)^2 + (z - centerZ)^2)^0.5 * 0.1)"
+}
+```
+
+Creates a circular depression centered at 0,0. Height decreases with distance from center.
+
+### Biome-Blended Terrain
+
+```json
+{
+  "variables": [],
+  "functions": [
+    {
+      "name": "biomeA",
+      "args": 2,
+      "styleValue": {
+        "type": "PERLIN",
+        "zoom": 1.0
+      }
+    },
+    {
+      "name": "biomeB",
+      "args": 2,
+      "styleValue": {
+        "type": "SIMPLEX",
+        "zoom": 1.0
+      }
+    },
+    {
+      "name": "blend",
+      "args": 2,
+      "styleValue": {
+        "type": "PERLIN",
+        "zoom": 0.3
+      }
+    }
+  ],
+  "expression": "(biomeA(x, z) * 50 * (1 - blend(x * 0.5, z * 0.5))) + (biomeB(x, z) * 50 * blend(x * 0.5, z * 0.5)) + 64"
+}
+```
+
+Blends between two different terrain styles based on a noise-controlled blend factor.
+
+## Usage in Dimensions
+
+Expressions can be used anywhere that accepts a generator or stream:
+
+### As Height Generator
+
+```json
+"terrain": {
+  "expression": "my-terrain-expression"
+}
+```
+
+### In Styled Ranges
+
+```json
+"someRange": {
+  "min": 5,
+  "max": 15,
+  "style": {
+    "expression": "variation-expression"
+  }
+}
+```
+
+## Performance Considerations
+
+1. **Minimize function calls**: Each function call generates noise, which is expensive
+2. **Limit variable count**: More variables = more noise generation overhead
+3. **Simplify expressions**: Complex math operations add up across millions of blocks
+4. **Cache when possible**: Iris caches expression results, but complex expressions still impact first-generation
+5. **Use appropriate zoom levels**: Extremely small zoom values (less than 0.01) can cause artifacts
+
+## Troubleshooting
+
+### Expression fails to load
+
+Check the server logs for parsing errors. Common issues:
+- Using reserved names (`x`, `y`, `z`) for variables/functions
+- Syntax errors in the expression string
+- Mismatched parentheses
+- Invalid function argument counts
+
+### Terrain looks wrong
+
+Verify:
+- Variable values are in expected ranges (noise returns -1 to 1)
+- Multiplication factors create reasonable heights
+- Function zoom levels are appropriate for the scale
+
+### Performance issues
+
+Simplify the expression by:
+- Reducing function calls
+- Decreasing fractal octaves in styleValues
+- Using fewer variables
+- Simplifying mathematical operations
+
+### NaN or Infinity values
+
+Avoid:
+- Division by zero
+- Invalid exponents (negative base with fractional exponent)
+- Overflow from extreme multiplication
+
+## Advanced Tips
+
+1. **Coordinate scaling**: Multiply coordinates by small values (0.001-0.1) to control feature scale
+2. **Layer combinations**: Add multiple noise layers at different scales for realistic terrain
+3. **Bias centering**: Add constants to center noise output (noise is -1 to 1, add 1 to make it 0 to 2)
+4. **Exponential shaping**: Use `^` to create dramatic peaks: `(noise(x, z) + 1)^3`
+5. **Conditional logic**: Use multiplication by 0/1 factors to simulate if/else
+6. **Distance formulas**: `((x - centerX)^2 + (z - centerZ)^2)^0.5` for radial effects

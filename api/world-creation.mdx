@@ -1,0 +1,171 @@
+---
+title: World Creation
+description: Create Iris worlds programmatically using IrisCreator and IrisToolbelt
+---
+
+## Overview
+
+Iris provides a builder pattern API for creating worlds through the `IrisCreator` class. Access it via `IrisToolbelt.createWorld()`.
+
+## Quick Start
+
+```java
+import com.volmit.iris.core.tools.IrisToolbelt;
+import org.bukkit.World;
+
+// Create a basic Iris world
+World world = IrisToolbelt.createWorld()
+    .name("myworld")
+    .dimension("overworld")
+    .seed(1234L)
+    .create();
+```
+
+## IrisToolbelt
+
+The `IrisToolbelt` class provides utility methods for working with Iris worlds.
+
+### Static Methods
+
+<ParamField path="createWorld()" type="IrisCreator">
+  Returns a new `IrisCreator` builder instance for world creation
+</ParamField>
+
+<ParamField path="getDimension(String)" type="IrisDimension">
+  Finds and loads a dimension by name. Automatically downloads from repositories if not found locally.
+  
+  **Parameters:**
+  - `dimension` - Dimension folder name, or GitHub repository (e.g., "GithubUsername/repository" or "GithubUsername/repository/branch")
+  
+  **Returns:** `IrisDimension` or `null` if not found
+</ParamField>
+
+<ParamField path="isIrisWorld(World)" type="boolean">
+  Checks if a world is managed by Iris
+  
+  **Parameters:**
+  - `world` - The world to check
+  
+  **Returns:** `true` if the world uses Iris generation
+</ParamField>
+
+<ParamField path="access(World)" type="PlatformChunkGenerator">
+  Gets the Iris generator interface for a world
+  
+  **Parameters:**
+  - `world` - The world to access
+  
+  **Returns:** `PlatformChunkGenerator` or `null` if not an Iris world
+</ParamField>
+
+## IrisCreator Builder
+
+The `IrisCreator` class uses a fluent builder pattern for configuring world creation.
+
+### Builder Methods
+
+<ParamField path="name(String)" type="IrisCreator">
+  Sets the world name
+  
+  **Default:** `"irisworld"`
+</ParamField>
+
+<ParamField path="dimension(String)" type="IrisCreator">
+  Sets the dimension to use for generation
+  
+  **Default:** Value from `IrisSettings.get().getGenerator().getDefaultWorldType()`
+</ParamField>
+
+<ParamField path="seed(long)" type="IrisCreator">
+  Sets the world seed
+  
+  **Default:** `1337`
+</ParamField>
+
+<ParamField path="studio(boolean)" type="IrisCreator">
+  Enables studio mode. Studio worlds are hotloadable, use dimensions from `Iris/packs` folder, and are deleted when unloaded.
+  
+  **Default:** `false`
+</ParamField>
+
+<ParamField path="benchmark(boolean)" type="IrisCreator">
+  Enables benchmark mode for performance testing
+  
+  **Default:** `false`
+</ParamField>
+
+<ParamField path="sender(VolmitSender)" type="IrisCreator">
+  Sets a sender to receive progress updates and auto-teleport when complete
+  
+  **Default:** `Iris.getSender()`
+</ParamField>
+
+<ParamField path="pregen(PregenTask)" type="IrisCreator">
+  Configures pregeneration during world creation
+  
+  **Default:** `null` (no pregeneration)
+</ParamField>
+
+### Creating the World
+
+<ParamField path="create()" type="World">
+  Creates the world with the configured settings. **Must be called from an async thread.**
+  
+  **Returns:** The created Bukkit `World`
+  
+  **Throws:** `IrisException` if creation fails or called on main thread
+</ParamField>
+
+## Complete Example
+
+```java
+import com.volmit.iris.core.tools.IrisToolbelt;
+import com.volmit.iris.util.exceptions.IrisException;
+import org.bukkit.World;
+
+public class WorldCreationExample {
+    
+    public void createCustomWorld() {
+        // Must run async
+        CompletableFuture.runAsync(() -> {
+            try {
+                World world = IrisToolbelt.createWorld()
+                    .name("custom_world")
+                    .dimension("overworld")
+                    .seed(987654321L)
+                    .studio(false)  // Production world
+                    .create();
+                    
+                System.out.println("Created world: " + world.getName());
+            } catch (IrisException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    
+    public void createStudioWorld() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                // Studio world for development
+                World studio = IrisToolbelt.createWorld()
+                    .name("dev_world")
+                    .dimension("custom_dimension")
+                    .studio(true)  // Hotloadable, auto-deletes
+                    .create();
+            } catch (IrisException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+}
+```
+
+## Important Notes
+
+<Warning>
+  `create()` **must** be called from an async thread. It will throw an `IrisException` if called on the main server thread.
+</Warning>
+
+<Info>
+  Studio worlds are automatically removed from MultiverseCore config and deleted when unloaded. They're designed for dimension development.
+</Info>

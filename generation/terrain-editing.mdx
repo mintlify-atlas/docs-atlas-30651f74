@@ -1,0 +1,309 @@
+---
+title: Terrain Editing
+description: Programmatically edit blocks and biomes in Iris worlds using the EditSVC service
+---
+
+## Overview
+
+Iris provides the `EditSVC` service for efficient block and biome manipulation in generated worlds. The service uses a batched editor system that automatically manages updates and flushes changes.
+
+## Accessing EditSVC
+
+The `EditSVC` service is available through Iris's service system:
+
+```java
+import com.volmit.iris.Iris;
+import com.volmit.iris.core.service.EditSVC;
+
+EditSVC editor = Iris.service(EditSVC.class);
+```
+
+## Block Editing
+
+### Setting Blocks
+
+Set individual blocks using world coordinates:
+
+```java
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
+
+World world = Bukkit.getWorld("myworld");
+BlockData stone = Material.STONE.createBlockData();
+
+// Set a block at coordinates (x, y, z)
+editor.set(world, 100, 64, 200, stone);
+```
+
+### Getting Blocks
+
+Retrieve block data at specific coordinates:
+
+```java
+BlockData data = editor.get(world, 100, 64, 200);
+Material type = data.getMaterial();
+```
+
+### Bulk Block Editing
+
+```java
+import com.volmit.iris.core.service.EditSVC;
+
+public void createPlatform(World world, int centerX, int y, int centerZ, int radius) {
+    EditSVC editor = Iris.service(EditSVC.class);
+    BlockData stone = Material.STONE.createBlockData();
+    
+    for (int x = centerX - radius; x <= centerX + radius; x++) {
+        for (int z = centerZ - radius; z <= centerZ + radius; z++) {
+            editor.set(world, x, y, z, stone);
+        }
+    }
+    
+    // Changes are automatically batched and flushed
+}
+```
+
+## Biome Editing
+
+### Setting Biomes (3D)
+
+Set biomes at specific 3D coordinates:
+
+```java
+import org.bukkit.block.Biome;
+
+// Set biome at specific Y level
+editor.setBiome(world, 100, 64, 200, Biome.DESERT);
+```
+
+### Setting Biomes (2D)
+
+Set biomes for an entire column:
+
+```java
+// Set biome for all Y levels at X/Z coordinates
+editor.setBiome(world, 100, 200, Biome.DESERT);
+```
+
+### Getting Biomes
+
+Retrieve biome information:
+
+```java
+// Get biome at specific 3D coordinates
+Biome biome3d = editor.getBiome(world, 100, 64, 200);
+
+// Get biome at X/Z coordinates (uses world height)
+Biome biome2d = editor.getBiome(world, 100, 200);
+```
+
+### Biome Region Modification
+
+```java
+public void changeBiomeRegion(World world, int x1, int z1, int x2, int z2, Biome newBiome) {
+    EditSVC editor = Iris.service(EditSVC.class);
+    
+    for (int x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+        for (int z = Math.min(z1, z2); z <= Math.max(z1, z2); z++) {
+            editor.setBiome(world, x, z, newBiome);
+        }
+    }
+}
+```
+
+## Block Editor System
+
+The `EditSVC` uses a `BlockEditor` system that manages batched updates:
+
+### How It Works
+
+<Steps>
+  <Step title="Editor Creation">
+    When you call `set()` or `setBiome()`, EditSVC creates or retrieves a `BlockEditor` for the world
+  </Step>
+  
+  <Step title="Batched Changes">
+    Changes are batched in memory for performance
+  </Step>
+  
+  <Step title="Automatic Flushing">
+    Editors automatically flush after 1 second of inactivity
+  </Step>
+  
+  <Step title="World Unload">
+    Editors flush and close when their world unloads
+  </Step>
+</Steps>
+
+### Manual Flushing
+
+Force immediate flush of all pending changes:
+
+```java
+EditSVC editor = Iris.service(EditSVC.class);
+
+// Make many changes...
+editor.set(world, x, y, z, blockData);
+
+// Force flush all worlds immediately
+editor.flushNow();
+```
+
+## Advanced Usage
+
+### Direct BlockEditor Access
+
+For advanced use cases, access the `BlockEditor` directly:
+
+```java
+import com.volmit.iris.core.edit.BlockEditor;
+
+EditSVC editService = Iris.service(EditSVC.class);
+BlockEditor editor = editService.open(world);
+
+// Use editor directly
+editor.set(x, y, z, blockData);
+editor.setBiome(x, y, z, biome);
+
+// Editor will auto-close after 1 second of inactivity
+```
+
+### Activity Tracking
+
+The editor tracks the last activity time:
+
+```java
+long lastActivity = editor.last();
+long timeSinceActivity = System.currentTimeMillis() - lastActivity;
+
+if (timeSinceActivity > 1000) {
+    // Editor will close soon
+}
+```
+
+## Studio Mode Integration
+
+In studio mode, terrain editing is particularly powerful for testing:
+
+```java
+import com.volmit.iris.core.tools.IrisToolbelt;
+
+if (IrisToolbelt.isIrisStudioWorld(world)) {
+    // Hot-reload is available
+    EditSVC editor = Iris.service(EditSVC.class);
+    
+    // Edit terrain
+    editor.set(world, x, y, z, blockData);
+    
+    // Changes visible immediately with hot-reload
+}
+```
+
+## Practical Examples
+
+### Create a Sphere
+
+```java
+public void createSphere(World world, int centerX, int centerY, int centerZ, 
+                         int radius, BlockData material) {
+    EditSVC editor = Iris.service(EditSVC.class);
+    
+    for (int x = -radius; x <= radius; x++) {
+        for (int y = -radius; y <= radius; y++) {
+            for (int z = -radius; z <= radius; z++) {
+                double distance = Math.sqrt(x*x + y*y + z*z);
+                
+                if (distance <= radius) {
+                    editor.set(world, 
+                        centerX + x, 
+                        centerY + y, 
+                        centerZ + z, 
+                        material);
+                }
+            }
+        }
+    }
+}
+```
+
+### Replace Block Type
+
+```java
+public void replaceBlocks(World world, int x1, int y1, int z1, 
+                          int x2, int y2, int z2,
+                          Material find, BlockData replace) {
+    EditSVC editor = Iris.service(EditSVC.class);
+    
+    for (int x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+        for (int y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+            for (int z = Math.min(z1, z2); z <= Math.max(z1, z2); z++) {
+                BlockData current = editor.get(world, x, y, z);
+                
+                if (current.getMaterial() == find) {
+                    editor.set(world, x, y, z, replace);
+                }
+            }
+        }
+    }
+}
+```
+
+### Create Biome Gradient
+
+```java
+public void createBiomeGradient(World world, int startX, int startZ, 
+                                int endX, int endZ,
+                                Biome startBiome, Biome endBiome) {
+    EditSVC editor = Iris.service(EditSVC.class);
+    int distance = Math.abs(endX - startX);
+    
+    for (int i = 0; i <= distance; i++) {
+        int x = startX + i;
+        // Alternate biomes based on position
+        Biome biome = (i < distance / 2) ? startBiome : endBiome;
+        
+        for (int z = startZ; z <= endZ; z++) {
+            editor.setBiome(world, x, z, biome);
+        }
+    }
+}
+```
+
+## Performance Tips
+
+<Tip>
+  **Batching**: The EditSVC automatically batches changes for performance. Make all your edits in sequence, and let the service handle flushing.
+</Tip>
+
+<Tip>
+  **World Scope**: Each world has its own BlockEditor. Editing multiple worlds simultaneously is efficient.
+</Tip>
+
+<Warning>
+  **Thread Safety**: Always call EditSVC methods from the main server thread unless you're certain the underlying implementation supports async access.
+</Warning>
+
+## Lifecycle Management
+
+### Automatic Cleanup
+
+The EditSVC handles cleanup automatically:
+
+- Editors close after 1 second of inactivity
+- Editors flush when worlds unload
+- All editors flush on plugin disable
+
+### Manual Control
+
+```java
+// Force immediate flush of all editors
+editor.flushNow();
+
+// Editors will be recreated as needed
+```
+
+## Related APIs
+
+- [Studio Mode](/generation/studio-mode) - Edit dimension files that affect terrain generation
+- [Creating Worlds](/generation/creating-worlds) - Generate worlds to edit

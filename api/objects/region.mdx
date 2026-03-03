@@ -1,0 +1,199 @@
+---
+title: Region
+description: Configuration reference for IrisRegion - mid-level container for biome groups and regional features
+---
+
+Represents an iris region. Regions are placed inside dimensions and contain biomes. Regions group biomes together and define regional placement styles, generators, and features.
+
+## Core Properties
+
+<ParamField path="name" type="string" required>
+  The name of the region
+  
+  **Constraints:** Minimum length 2
+</ParamField>
+
+<ParamField path="rarity" type="integer" default="1">
+  The rarity of the region
+  
+  **Constraints:** 1-128
+</ParamField>
+
+<ParamField path="color" type="string">
+  A color for visualizing this region with a color. I.e. #F13AF5. This will show up on the map.
+</ParamField>
+
+## Biome Lists
+
+<ParamField path="landBiomes" type="array<string>" required>
+  A list of root-level biomes in this region. Don't specify child biomes of other biomes here. Just the root parents.
+  
+  **Constraints:** Minimum 1 item
+</ParamField>
+
+<ParamField path="seaBiomes" type="array<string>" required>
+  A list of root-level sea biomes in this region. Don't specify child biomes of other biomes here. Just the root parents.
+  
+  **Constraints:** Minimum 1 item
+</ParamField>
+
+<ParamField path="shoreBiomes" type="array<string>" required>
+  A list of root-level shore biomes in this region. Don't specify child biomes of other biomes here. Just the root parents.
+  
+  **Constraints:** Minimum 1 item
+</ParamField>
+
+<ParamField path="caveBiomes" type="array<string>" default="[]">
+  A list of root-level cave biomes in this region. Don't specify child biomes of other biomes here. Just the root parents.
+</ParamField>
+
+## Biome Zoom
+
+<ParamField path="landBiomeZoom" type="number" default="1">
+  How large land biomes are in this region
+  
+  **Constraints:** Minimum 0.0001
+</ParamField>
+
+<ParamField path="seaBiomeZoom" type="number" default="1">
+  How large sea biomes are in this region
+  
+  **Constraints:** Minimum 0.0001
+</ParamField>
+
+<ParamField path="shoreBiomeZoom" type="number" default="1">
+  How large shore biomes are in this region
+  
+  **Constraints:** Minimum 0.0001
+</ParamField>
+
+<ParamField path="caveBiomeZoom" type="number" default="1">
+  How large cave biomes are in this region
+  
+  **Constraints:** Minimum 0.0001
+</ParamField>
+
+## Shore Configuration
+
+<ParamField path="shoreHeightMin" type="number" default="1.2">
+  The min shore height
+  
+  **Constraints:** Minimum 0
+</ParamField>
+
+<ParamField path="shoreHeightMax" type="number" default="3.2">
+  The max shore height
+  
+  **Constraints:** Minimum 0
+</ParamField>
+
+<ParamField path="shoreHeightZoom" type="number" default="3.14">
+  The variance of the shore height
+  
+  **Constraints:** Minimum 0.0001
+</ParamField>
+
+## Fluid Bodies
+
+<ParamField path="riverStyle" type="IrisGeneratorStyle" default="VASCULAR_THIN zoomed 7.77">
+  The style of rivers
+</ParamField>
+
+<ParamField path="lakeStyle" type="IrisGeneratorStyle" default="CELLULAR_IRIS_THICK">
+  The style of lakes
+</ParamField>
+
+<ParamField path="fluidBodies" type="IrisFluidBodies" default="{}">
+  Configuration of fluid bodies such as rivers & lakes
+</ParamField>
+
+## Objects & Placement
+
+<ParamField path="objects" type="array<IrisObjectPlacement>" default="[]">
+  Objects define what schematics (iob files) iris will place in this region
+</ParamField>
+
+## World Features
+
+<ParamField path="carving" type="IrisCarving" default="{}">
+  Carving configuration for the region (caves, ravines, etc)
+</ParamField>
+
+<ParamField path="deposits" type="array<IrisDepositGenerator>" default="[]">
+  Define regional deposit generators that add onto the global deposit generators
+</ParamField>
+
+<ParamField path="ores" type="array<IrisOreGenerator>" default="[]">
+  Collection of ores to be generated
+</ParamField>
+
+## Structures
+
+<ParamField path="jigsawStructures" type="array<IrisJigsawStructurePlacement>" default="[]">
+  Jigsaw structures
+</ParamField>
+
+## Effects & Ambience
+
+<ParamField path="effects" type="array<IrisEffect>" default="[]">
+  Effects are ambient effects such as potion effects, random sounds, or even particles around each player. All of these effects are played via packets so two players won't see/hear each others effects. Due to performance reasons, effects will play around the player even if where the effect was played is no longer in the biome the player is in.
+</ParamField>
+
+## Entities
+
+<ParamField path="entitySpawners" type="array<string>" default="[]">
+  Spawn Entities in this region over time. Iris will continually replenish these mobs just like vanilla does.
+</ParamField>
+
+## Loot & Block Drops
+
+<ParamField path="loot" type="IrisLootReference" default="{}">
+  Reference loot tables in this area
+</ParamField>
+
+<ParamField path="blockDrops" type="array<IrisBlockDrops>" default="[]">
+  Define custom block drops for this region
+</ParamField>
+
+## JSON Example
+
+```json
+{
+  "name": "Temperate",
+  "rarity": 1,
+  "color": "#4CAF50",
+  "landBiomes": [
+    "plains",
+    "forest",
+    "birch-forest"
+  ],
+  "seaBiomes": [
+    "ocean",
+    "deep-ocean"
+  ],
+  "shoreBiomes": [
+    "beach",
+    "stony-shore"
+  ],
+  "caveBiomes": [
+    "lush-caves"
+  ],
+  "landBiomeZoom": 1.0,
+  "seaBiomeZoom": 1.0,
+  "shoreBiomeZoom": 1.0,
+  "caveBiomeZoom": 1.0,
+  "shoreHeightMin": 1.2,
+  "shoreHeightMax": 3.2,
+  "shoreHeightZoom": 3.14,
+  "riverStyle": {
+    "style": "VASCULAR_THIN",
+    "zoom": 7.77
+  },
+  "lakeStyle": {
+    "style": "CELLULAR_IRIS_THICK"
+  },
+  "objects": [],
+  "ores": [],
+  "deposits": []
+}
+```

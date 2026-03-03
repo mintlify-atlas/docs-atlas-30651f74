@@ -1,0 +1,177 @@
+---
+title: Dimension Access
+description: Access Iris chunk generators and dimension information
+---
+
+## Overview
+
+The `PlatformChunkGenerator` interface provides access to the Iris engine and dimension data for a world.
+
+## Getting Generator Access
+
+```java
+import com.volmit.iris.core.tools.IrisToolbelt;
+import com.volmit.iris.engine.platform.PlatformChunkGenerator;
+import org.bukkit.World;
+
+World world = Bukkit.getWorld("myworld");
+
+// Check if world uses Iris
+if (IrisToolbelt.isIrisWorld(world)) {
+    PlatformChunkGenerator generator = IrisToolbelt.access(world);
+    // Use generator methods
+}
+```
+
+## PlatformChunkGenerator Interface
+
+Location: `core/src/main/java/com/volmit/iris/engine/platform/PlatformChunkGenerator.java`
+
+### Methods
+
+<ParamField path="getEngine()" type="Engine">
+  Returns the Iris engine instance for this world
+  
+  **Returns:** `Engine` or `null` if not initialized
+  
+  ```java
+  Engine engine = generator.getEngine();
+  if (engine != null) {
+      IrisDimension dim = engine.getDimension();
+  }
+  ```
+</ParamField>
+
+<ParamField path="getTarget()" type="EngineTarget">
+  Returns the engine target containing world and dimension information
+  
+  **Returns:** `EngineTarget` (never null)
+  
+  ```java
+  EngineTarget target = generator.getTarget();
+  IrisWorld irisWorld = target.getWorld();
+  IrisDimension dimension = target.getDimension();
+  ```
+</ParamField>
+
+<ParamField path="getData()" type="IrisData">
+  Returns the data loader for this dimension
+  
+  **Returns:** `IrisData` - provides access to all dimension resources
+  
+  ```java
+  IrisData data = generator.getData();
+  IrisBiome biome = data.getBiomeLoader().load("plains");
+  ```
+</ParamField>
+
+<ParamField path="isStudio()" type="boolean">
+  Checks if this is a studio world (hotloadable, development mode)
+  
+  **Returns:** `true` if studio mode is enabled
+</ParamField>
+
+<ParamField path="close()" type="void">
+  Closes and cleans up the generator. Called automatically on world unload.
+</ParamField>
+
+<ParamField path="touch(World)" type="void">
+  Updates internal references to the Bukkit world
+  
+  **Parameters:**
+  - `world` - The Bukkit world instance
+</ParamField>
+
+<ParamField path="injectChunkReplacement(World, int, int, Executor)" type="void">
+  Injects a chunk replacement at the specified coordinates
+  
+  **Parameters:**
+  - `world` - The target world
+  - `x` - Chunk X coordinate
+  - `z` - Chunk Z coordinate  
+  - `syncExecutor` - Executor for synchronous operations
+</ParamField>
+
+<ParamField path="getSpawnChunks()" type="CompletableFuture<Integer>">
+  Returns a future that completes with the number of spawn chunks to generate
+  
+  **Returns:** `CompletableFuture<Integer>` with spawn chunk count
+  
+  ```java
+  generator.getSpawnChunks().thenAccept(count -> {
+      System.out.println("Generating " + count + " spawn chunks");
+  });
+  ```
+</ParamField>
+
+## DataProvider Interface
+
+`PlatformChunkGenerator` extends `DataProvider`, giving access to:
+
+<ParamField path="getData()" type="IrisData">
+  Access to all dimension data loaders (biomes, regions, objects, etc.)
+</ParamField>
+
+## Hotloadable Interface
+
+`PlatformChunkGenerator` extends `Hotloadable` for live reloading:
+
+<ParamField path="hotload()" type="void">
+  Reloads dimension data without restarting the server (studio mode only)
+</ParamField>
+
+## Usage Examples
+
+### Check World Type
+
+```java
+public boolean isIrisStudioWorld(World world) {
+    if (!IrisToolbelt.isIrisWorld(world)) {
+        return false;
+    }
+    return IrisToolbelt.access(world).isStudio();
+}
+```
+
+### Access Dimension Data
+
+```java
+public void printDimensionInfo(World world) {
+    PlatformChunkGenerator gen = IrisToolbelt.access(world);
+    if (gen == null) {
+        System.out.println("Not an Iris world");
+        return;
+    }
+    
+    Engine engine = gen.getEngine();
+    if (engine == null) {
+        System.out.println("Engine not ready");
+        return;
+    }
+    
+    IrisDimension dim = engine.getDimension();
+    System.out.println("Dimension: " + dim.getName());
+    System.out.println("Height: " + dim.getDimensionHeight());
+    System.out.println("Biomes: " + dim.getAllBiomes(engine).size());
+}
+```
+
+### Wait for Spawn Generation
+
+```java
+public void waitForSpawn(PlatformChunkGenerator generator) {
+    generator.getSpawnChunks().thenAccept(chunkCount -> {
+        Engine engine = generator.getEngine();
+        while (engine.getGenerated() < chunkCount) {
+            System.out.println("Progress: " + engine.getGenerated() + "/" + chunkCount);
+            Thread.sleep(1000);
+        }
+        System.out.println("Spawn generation complete!");
+    });
+}
+```
+
+## See Also
+
+- [Engine Access](/api/engine-access) - Working with the Iris engine
+- [Data Loader](/api/data-loader) - Loading dimension resources

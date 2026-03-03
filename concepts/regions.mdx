@@ -1,0 +1,303 @@
+---
+title: Regions
+description: Understanding regional organization in Iris world generation
+---
+
+## What is a Region?
+
+A **region** in Iris is a large-scale organizational unit that groups related biomes together. Regions define which biomes can spawn near each other and control the macro-scale terrain features.
+
+Think of regions as "biome themes" or "climate zones":
+- A "Temperate" region might contain forests, plains, and hills
+- A "Desert" region might contain dunes, mesas, and oases
+- A "Mountains" region might contain peaks, cliffs, and valleys
+
+## Regional Hierarchy
+
+```
+Dimension
+  └─ Region (Theme/Climate Zone)
+      ├─ Land Biomes (Hills, Forests, Plains)
+      ├─ Ocean Biomes (Deep Ocean, Reef)
+      └─ Shore Biomes (Beach, Rocky Coast)
+```
+
+<Info>
+Regions control the "macro" distribution of terrain types. Dimensions pick which regions spawn, and regions pick which biomes spawn.
+</Info>
+
+## Basic Structure
+
+### Minimal Region
+
+```json regions/plains.json
+{
+  "name": "Plains Region",
+  "landBiomes": [
+    "grassland",
+    "flower-plains",
+    "sparse-forest"
+  ]
+}
+```
+
+<ParamField path="name" type="string" required>
+  Human-readable name for this region (minimum 2 characters)
+</ParamField>
+
+<ParamField path="landBiomes" type="string[]">
+  List of biome files (from `biomes/` folder) that spawn on land in this region
+</ParamField>
+
+<ParamField path="seaBiomes" type="string[]">
+  List of biome files that spawn in ocean areas
+</ParamField>
+
+<ParamField path="shoreBiomes" type="string[]">
+  List of biome files that spawn along coastlines (transition between land and sea)
+</ParamField>
+
+## Biome Distribution
+
+### Land, Sea, and Shore
+
+```json
+{
+  "name": "Coastal Region",
+  
+  "landBiomes": [
+    "coastal-forest",
+    "coastal-plains"
+  ],
+  
+  "shoreBiomes": [
+    "sandy-beach",
+    "rocky-shore"
+  ],
+  
+  "seaBiomes": [
+    "warm-ocean",
+    "coral-reef"
+  ]
+}
+```
+
+Iris automatically handles transitions:
+1. **Land biomes** spawn in the interior
+2. **Shore biomes** spawn near water edges
+3. **Sea biomes** spawn in deep water
+
+<Tip>
+Define shore biomes to create smooth land-to-ocean transitions. Without shores, land biomes will abruptly meet sea biomes.
+</Tip>
+
+## Regional Lakes and Rivers
+
+### Lake Configuration
+
+```json
+{
+  "lakes": [
+    {
+      "chance": 0.25,
+      "minSize": 12,
+      "maxSize": 48,
+      "biome": "freshwater-lake"
+    }
+  ]
+}
+```
+
+<ParamField path="lakes" type="IrisLake[]">
+  Array of lake generators that can spawn in this region
+</ParamField>
+
+<ParamField path="lakes[].chance" type="number">
+  Probability (0.0-1.0) of a lake spawning in a suitable location
+</ParamField>
+
+<ParamField path="lakes[].minSize" type="integer">
+  Minimum radius in blocks
+</ParamField>
+
+<ParamField path="lakes[].maxSize" type="integer">
+  Maximum radius in blocks
+</ParamField>
+
+<ParamField path="lakes[].biome" type="string">
+  Biome file to use for the lake interior
+</ParamField>
+
+### River Configuration
+
+```json
+{
+  "rivers": [
+    {
+      "chance": 0.4,
+      "biome": "river",
+      "widthMin": 6,
+      "widthMax": 14
+    }
+  ]
+}
+```
+
+<ParamField path="rivers" type="IrisRiver[]">
+  Array of river generators for this region
+</ParamField>
+
+## Regional Features
+
+### Spawners (Ambient Entities)
+
+```json
+{
+  "entitySpawners": [
+    "passive-animals",
+    "flying-creatures"
+  ]
+}
+```
+
+<ParamField path="entitySpawners" type="string[]">
+  List of entity spawner files (from `spawners/` folder) active in this region
+</ParamField>
+
+### Loot Tables
+
+```json
+{
+  "loot": {
+    "tables": [
+      "regional-chests",
+      "fishing-temperate"
+    ]
+  }
+}
+```
+
+<ParamField path="loot.tables" type="string[]">
+  Loot table files applied to this region
+</ParamField>
+
+## Rarity and Weighting
+
+Control how often a region spawns in the dimension:
+
+```json
+{
+  "rarity": 2
+}
+```
+
+<ParamField path="rarity" type="integer" default="1">
+  Higher values make the region spawn more frequently. A region with `rarity: 3` is 3x more common than one with `rarity: 1`.
+</ParamField>
+
+## Example: Complete Region
+
+```json regions/tropical.json
+{
+  "name": "Tropical Region",
+  "rarity": 2,
+  
+  "landBiomes": [
+    "rainforest",
+    "jungle",
+    "bamboo-forest"
+  ],
+  
+  "shoreBiomes": [
+    "tropical-beach",
+    "mangrove-coast"
+  ],
+  
+  "seaBiomes": [
+    "warm-ocean",
+    "coral-reef",
+    "tropical-shallows"
+  ],
+  
+  "lakes": [
+    {
+      "chance": 0.3,
+      "minSize": 8,
+      "maxSize": 32,
+      "biome": "jungle-lake"
+    }
+  ],
+  
+  "rivers": [
+    {
+      "chance": 0.5,
+      "biome": "jungle-river",
+      "widthMin": 8,
+      "widthMax": 16
+    }
+  ],
+  
+  "entitySpawners": [
+    "tropical-animals",
+    "parrots"
+  ],
+  
+  "loot": {
+    "tables": [
+      "jungle-treasures"
+    ]
+  }
+}
+```
+
+## Best Practices
+
+<Tip>
+- Create 3-7 biomes per region for variety
+- Always define shore biomes for regions near water
+- Use `rarity` to balance common vs. rare regions
+- Group thematically similar biomes (don't mix snow and desert in one region)
+</Tip>
+
+<Warning>
+Don't create too many regions with `rarity: 1` — this makes worlds feel random. Focus on 5-10 well-designed regions.
+</Warning>
+
+## Advanced: Biome Sub-Regions
+
+Biomes can have "children" that spawn within them:
+
+```json regions/mountains.json
+{
+  "landBiomes": [
+    "mountain-peaks",
+    "alpine-meadows"
+  ]
+}
+```
+
+Then in `biomes/mountain-peaks.json`:
+
+```json
+{
+  "name": "Mountain Peaks",
+  "children": [
+    "snow-cap",
+    "rocky-cliff"
+  ],
+  "childrenRarity": 3
+}
+```
+
+This creates micro-variations within the biome.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Biomes" icon="trees" href="/concepts/biomes">
+    Learn how biomes define terrain
+  </Card>
+  <Card title="Create a Region" icon="map-location-dot" href="/content/regions-guide">
+    Step-by-step region creation
+  </Card>
+</CardGroup>

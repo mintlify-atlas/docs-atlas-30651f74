@@ -1,0 +1,355 @@
+---
+title: Generators
+description: Understanding terrain height generation with noise in Iris
+---
+
+## What is a Generator?
+
+A **generator** in Iris controls the height and shape of terrain using mathematical noise functions. Generators take X/Z coordinates and output a height value, determining where land rises into mountains or dips into valleys.
+
+Generators are the foundation of terrain creation:
+- **Simple generators** create basic terrain (plains, hills)
+- **Composite generators** blend multiple noise layers for complex landscapes
+- **Styled generators** apply different noise algorithms (perlin, simplex, cellular)
+
+<Info>
+Generators define "how high" the terrain is at each coordinate. Biomes use generators to create their terrain shape, and multiple biomes can share the same generator.
+</Info>
+
+## Generator Structure
+
+### Basic Generator
+
+```json generators/plains.json
+{
+  "name": "Plains Terrain",
+  "composite": [
+    {
+      "style": {
+        "style": "SIMPLEX",
+        "zoom": 0.5,
+        "fracture": {
+          "style": "SIMPLEX",
+          "zoom": 0.1,
+          "multiplier": 25
+        }
+      },
+      "opacity": 1.0,
+      "multiplier": 8
+    }
+  ]
+}
+```
+
+<ParamField path="name" type="string" required>
+  Human-readable generator name
+</ParamField>
+
+<ParamField path="composite" type="IrisShapedGeneratorStyle[]">
+  Array of noise layers that are blended together. Each layer contributes to the final height.
+</ParamField>
+
+## Noise Styles
+
+### Available Styles
+
+Iris supports multiple noise algorithms (from `NoiseStyle.java`):
+
+<Tabs>
+  <Tab title="Smooth Noise">
+    **SIMPLEX** - Organic, flowing terrain
+    ```json
+    {
+      "style": "SIMPLEX",
+      "zoom": 0.5
+    }
+    ```
+    Best for: Natural hills, valleys, organic shapes
+  </Tab>
+  
+  <Tab title="Layered Noise">
+    **FRACTAL_BILLOW_SIMPLEX** - Billowy, cloud-like
+    ```json
+    {
+      "style": "FRACTAL_BILLOW_SIMPLEX",
+      "zoom": 0.3,
+      "fractalOctaves": 3
+    }
+    ```
+    Best for: Rolling hills, dunes
+  </Tab>
+  
+  <Tab title="Sharp Features">
+    **FRACTAL_RIGID_MULTI_SIMPLEX** - Sharp ridges
+    ```json
+    {
+      "style": "FRACTAL_RIGID_MULTI_SIMPLEX",
+      "zoom": 0.4,
+      "fractalOctaves": 4
+    }
+    ```
+    Best for: Mountain ranges, jagged peaks
+  </Tab>
+  
+  <Tab title="Cellular">
+    **CELLULAR** - Cell-based patterns
+    ```json
+    {
+      "style": "CELLULAR",
+      "zoom": 1.0
+    }
+    ```
+    Best for: Plateaus, mesas, distinct regions
+  </Tab>
+</Tabs>
+
+### Common Style Parameters
+
+<ParamField path="style.style" type="NoiseStyle" required>
+  The noise algorithm to use (SIMPLEX, CELLULAR, FRACTAL_BILLOW_SIMPLEX, etc.)
+</ParamField>
+
+<ParamField path="style.zoom" type="number" default="1.0">
+  Noise frequency. Lower values = larger features, higher values = smaller features.
+  - `0.1-0.5`: Large continental-scale features
+  - `0.5-2.0`: Regional hills and valleys
+  - `2.0+`: Fine detail and variation
+</ParamField>
+
+<ParamField path="style.fractalOctaves" type="integer" default="1">
+  Number of noise layers for fractal noise types. More octaves = more detail but slower generation.
+</ParamField>
+
+<ParamField path="style.seed" type="integer">
+  Custom seed for this noise layer. If not set, uses world seed.
+</ParamField>
+
+## Composite Layers
+
+### Blending Multiple Noise Layers
+
+Generators can combine multiple noise patterns:
+
+```json
+{
+  "composite": [
+    {
+      "style": {
+        "style": "SIMPLEX",
+        "zoom": 0.3
+      },
+      "opacity": 1.0,
+      "multiplier": 15
+    },
+    {
+      "style": {
+        "style": "FRACTAL_RIGID_MULTI_SIMPLEX",
+        "zoom": 0.8
+      },
+      "opacity": 0.6,
+      "multiplier": 25
+    }
+  ]
+}
+```
+
+<ParamField path="composite[].opacity" type="number">
+  Layer blend strength (0.0 = invisible, 1.0 = full strength). Controls how much this layer influences the final height.
+</ParamField>
+
+<ParamField path="composite[].multiplier" type="number">
+  Height multiplier for this layer. Final height = noise_value × multiplier.
+</ParamField>
+
+### How Layers Combine
+
+Given two layers:
+1. Layer A: `multiplier: 10`, `opacity: 1.0`, noise = 0.5 → contributes +5 blocks
+2. Layer B: `multiplier: 20`, `opacity: 0.5`, noise = 0.3 → contributes +3 blocks
+
+Final height = base + (5 + 3) = base + 8 blocks
+
+## Advanced Features
+
+### Fracture (Domain Warping)
+
+Fracture distorts the noise coordinates, creating organic warping:
+
+```json
+{
+  "style": {
+    "style": "SIMPLEX",
+    "zoom": 0.5,
+    "fracture": {
+      "style": "SIMPLEX",
+      "zoom": 0.1,
+      "multiplier": 30
+    }
+  },
+  "multiplier": 12
+}
+```
+
+<ParamField path="style.fracture" type="IrisGeneratorStyle">
+  Nested noise that warps the coordinate space before sampling the main noise. Creates flowing, organic patterns.
+</ParamField>
+
+<ParamField path="style.fracture.multiplier" type="number">
+  Strength of the domain warping. Higher values = more distortion.
+</ParamField>
+
+<Tip>
+Fracture is excellent for making terrain feel more natural. Use it sparingly (multiplier 10-40) to avoid chaotic results.
+</Tip>
+
+### Interpolators
+
+Smooth transitions between generators:
+
+```json
+{
+  "interpolationFunction": "HERMITE",
+  "interpolationScale": 1.5
+}
+```
+
+<ParamField path="interpolationFunction" type="IrisInterpolator">
+  Smoothing function: `LINEAR`, `HERMITE` (smooth), `BEZIER` (very smooth)
+</ParamField>
+
+<ParamField path="interpolationScale" type="number">
+  Multiplier for interpolation distance
+</ParamField>
+
+## Example Generators
+
+### Gentle Plains
+
+```json generators/gentle-plains.json
+{
+  "name": "Gentle Plains",
+  "composite": [
+    {
+      "style": {
+        "style": "SIMPLEX",
+        "zoom": 0.4
+      },
+      "opacity": 1.0,
+      "multiplier": 5
+    }
+  ]
+}
+```
+
+### Rolling Hills
+
+```json generators/rolling-hills.json
+{
+  "name": "Rolling Hills",
+  "composite": [
+    {
+      "style": {
+        "style": "FRACTAL_BILLOW_SIMPLEX",
+        "zoom": 0.35,
+        "fractalOctaves": 3
+      },
+      "opacity": 1.0,
+      "multiplier": 18
+    },
+    {
+      "style": {
+        "style": "SIMPLEX",
+        "zoom": 1.2
+      },
+      "opacity": 0.4,
+      "multiplier": 6
+    }
+  ]
+}
+```
+
+### Jagged Mountains
+
+```json generators/jagged-mountains.json
+{
+  "name": "Jagged Mountains",
+  "composite": [
+    {
+      "style": {
+        "style": "FRACTAL_RIGID_MULTI_SIMPLEX",
+        "zoom": 0.5,
+        "fractalOctaves": 5,
+        "fracture": {
+          "style": "SIMPLEX",
+          "zoom": 0.15,
+          "multiplier": 25
+        }
+      },
+      "opacity": 1.0,
+      "multiplier": 60
+    },
+    {
+      "style": {
+        "style": "CELLULAR",
+        "zoom": 0.8
+      },
+      "opacity": 0.3,
+      "multiplier": 20
+    }
+  ]
+}
+```
+
+## Using Generators in Biomes
+
+Reference generators in biome files:
+
+```json biomes/mountain-peaks.json
+{
+  "name": "Mountain Peaks",
+  "generators": [
+    {
+      "generator": "jagged-mountains",
+      "min": 90,
+      "max": 200
+    }
+  ]
+}
+```
+
+The `min` and `max` clamp the generator output to prevent extreme values.
+
+## Performance Considerations
+
+<Warning>
+Complex generators impact performance:
+- Each composite layer adds computation
+- Fractal octaves multiply noise calculations
+- Fracture adds additional noise sampling
+
+For production worlds:
+- Limit composite layers to 2-4
+- Keep fractal octaves under 6
+- Use fracture sparingly (1-2 layers max)
+</Warning>
+
+## Best Practices
+
+<Tip>
+- **Start simple**: Single-layer generators for testing
+- **Layer gradually**: Add complexity one layer at a time
+- **Vary zoom levels**: Mix large-scale (0.2-0.5) with detail (1.0-2.0)
+- **Test in-game**: Screenshots don't show terrain feel
+- **Reuse generators**: Many biomes can share the same generator with different min/max
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Noise Styles" icon="wave-sine" href="/concepts/noise">
+    Deep dive into noise algorithms
+  </Card>
+  <Card title="Create Custom Terrain" icon="mountain" href="/content/biomes-guide">
+    Apply generators in biome creation
+  </Card>
+</CardGroup>

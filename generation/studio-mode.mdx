@@ -1,0 +1,427 @@
+---
+title: Studio Mode
+description: Enable hot-reload development for Iris dimension packs with studio mode worlds
+---
+
+## Overview
+
+Studio mode creates special development worlds that hot-reload dimension changes without restarting the server. These worlds use the dimension files directly from your `packs` folder and are automatically cleaned up when unloaded.
+
+## Enabling Studio Mode
+
+### Via API
+
+Enable studio mode when creating a world:
+
+```java
+import com.volmit.iris.core.tools.IrisToolbelt;
+
+World world = IrisToolbelt.createWorld()
+    .name("mystudio")
+    .dimension("overworld")
+    .studio(true)  // Enable studio mode
+    .create();
+```
+
+### Via StudioSVC
+
+The `StudioSVC` service provides dedicated studio world management:
+
+```java
+import com.volmit.iris.Iris;
+import com.volmit.iris.core.service.StudioSVC;
+import com.volmit.iris.util.plugin.VolmitSender;
+
+StudioSVC studio = Iris.service(StudioSVC.class);
+
+// Open a studio world with default seed
+studio.open(sender, "overworld");
+
+// Open with custom seed
+studio.open(sender, 12345L, "overworld");
+```
+
+### With Completion Callback
+
+```java
+studio.open(sender, 1337L, "overworld", (world) -> {
+    sender.sendMessage("Studio world loaded: " + world.getName());
+    // Teleport player, setup permissions, etc.
+});
+```
+
+## Studio World Characteristics
+
+### Hot-Reload Enabled
+
+Studio worlds automatically reload dimension file changes:
+
+- Edit dimension JSON files in `plugins/Iris/packs/yourpack/`
+- Changes apply to newly generated chunks
+- No server restart required
+
+### Direct Pack Access
+
+Unlike production worlds, studio worlds:
+
+- Read directly from `packs` folder
+- Don't copy dimension files into world folder
+- Share the pack with other studio instances
+
+### Auto-Deletion
+
+Studio worlds are temporary:
+
+- Automatically deleted when unloaded
+- Not registered in `bukkit.yml`
+- Removed from Multiverse config (if present)
+
+### Game Rules
+
+If configured, studio worlds disable time and weather:
+
+```java
+// From IrisSettings
+if (IrisSettings.get().getStudio().isDisableTimeAndWeather()) {
+    world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+    world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+    world.setTime(6000); // Noon
+}
+```
+
+## Managing Studio Projects
+
+### Opening Projects
+
+The `StudioSVC` manages one active project at a time:
+
+```java
+StudioSVC studio = Iris.service(StudioSVC.class);
+
+if (!studio.isProjectOpen()) {
+    studio.open(sender, "mydimension");
+} else {
+    sender.sendMessage("A project is already open!");
+    studio.close(); // Close current project
+    studio.open(sender, "mydimension"); // Open new one
+}
+```
+
+### Closing Projects
+
+Close the active studio project:
+
+```java
+if (studio.isProjectOpen()) {
+    studio.close();
+    // World evacuated and unloaded
+    // Project closed
+}
+```
+
+### Accessing Active Project
+
+```java
+import com.volmit.iris.core.project.IrisProject;
+
+if (studio.isProjectOpen()) {
+    IrisProject project = studio.getActiveProject();
+    // Use project API...
+}
+```
+
+## Project Management
+
+### Creating New Projects
+
+Create a new dimension pack from a template:
+
+```java
+// Create from default example template
+studio.create(sender, "mynewpack");
+
+// Create from specific template
+studio.create(sender, "mynewpack", "overworld");
+```
+
+The creation process:
+
+<Steps>
+  <Step title="Download Template">
+    Downloads the specified pack if not already present
+  </Step>
+  
+  <Step title="Copy Files">
+    Copies dimension files to new project folder
+  </Step>
+  
+  <Step title="Update Metadata">
+    Updates dimension name and creates workspace config
+  </Step>
+  
+  <Step title="Open Studio World">
+    Automatically opens the new dimension in studio mode
+  </Step>
+</Steps>
+
+### Creating from Existing Pack
+
+```java
+studio.createFrom("overworld", "mycustompack");
+```
+
+This:
+- Copies all files from `overworld` pack
+- Renames dimension file to `mycustompack.json`
+- Updates dimension metadata
+- Creates VSCode workspace config
+
+## Dimension File Editing
+
+### Opening Files in VSCode
+
+```java
+studio.openVSCode(sender, "overworld");
+```
+
+### Edit Commands Integration
+
+Studio mode enables the `/iris edit` commands:
+
+```java
+import com.volmit.iris.core.commands.CommandEdit;
+
+// In studio worlds, players can use:
+// /iris edit biome <biome-name>
+// /iris edit region <region-name>
+// /iris edit dimension <dimension-name>
+// /iris edit cave <cave-name>
+// /iris edit jigsaw <structure-name>
+```
+
+Example from source:
+
+```java
+if (IrisToolbelt.isStudio(world)) {
+    // Opens dimension file in default editor
+    Desktop.getDesktop().open(dimension.getLoadFile());
+}
+```
+
+## Downloading Dimension Packs
+
+### From GitHub
+
+```java
+// Download from IrisDimensions organization
+studio.downloadSearch(sender, "overworld", false);
+
+// Download with trimming (removes unused files)
+studio.downloadSearch(sender, "overworld", true);
+
+// Force overwrite existing pack
+studio.downloadSearch(sender, "overworld", false, true);
+```
+
+### GitHub Repository Formats
+
+```java
+// Just the pack name (searches listing)
+"overworld"
+
+// Full repository path
+"IrisDimensions/overworld"
+
+// With specific branch
+"IrisDimensions/overworld/master"
+```
+
+### From Direct URL
+
+```java
+String releaseUrl = "https://github.com/IrisDimensions/overworld/releases/download/v1.0.0/overworld.zip";
+studio.downloadRelease(sender, releaseUrl, false, false);
+```
+
+## Installing Dimensions
+
+### Install into World
+
+Install a dimension pack into an existing world:
+
+```java
+import org.bukkit.Bukkit;
+import java.io.File;
+
+File worldFolder = new File(Bukkit.getWorldContainer(), "myworld");
+IrisDimension installed = studio.installIntoWorld(
+    sender, 
+    "overworld", 
+    worldFolder
+);
+
+if (installed != null) {
+    sender.sendMessage("Dimension installed successfully!");
+}
+```
+
+### Install to Custom Location
+
+```java
+File customLocation = new File("/custom/path/");
+IrisDimension installed = studio.installInto(
+    sender, 
+    "overworld", 
+    customLocation
+);
+```
+
+## Workspace Management
+
+### Workspace Folder
+
+All dimension packs are stored in the workspace:
+
+```java
+// Get workspace folder
+File workspace = studio.getWorkspaceFolder();
+// Returns: plugins/Iris/packs/
+
+// Get specific dimension folder
+File packFolder = studio.getWorkspaceFolder("overworld");
+// Returns: plugins/Iris/packs/overworld/
+
+// Get nested path
+File dimensionsFolder = studio.getWorkspaceFolder("overworld", "dimensions");
+// Returns: plugins/Iris/packs/overworld/dimensions/
+```
+
+### Workspace Files
+
+```java
+// Get specific file in workspace
+File file = studio.getWorkspaceFile("overworld", "dimensions", "overworld.json");
+```
+
+### Update Workspace
+
+```java
+if (studio.isProjectOpen()) {
+    studio.updateWorkspace();
+    // Refreshes workspace configuration
+}
+```
+
+## Compiling Dimension Packs
+
+### Package for Distribution
+
+```java
+import java.io.File;
+
+// Compile pack to .iris file
+File compiled = studio.compilePackage(sender, "overworld", false, false);
+
+// With obfuscation
+File obfuscated = studio.compilePackage(sender, "overworld", true, false);
+
+// With minification
+File minified = studio.compilePackage(sender, "overworld", false, true);
+
+// Both
+File optimized = studio.compilePackage(sender, "overworld", true, true);
+```
+
+## Studio World Validation
+
+### Check if World is Studio
+
+```java
+import com.volmit.iris.core.tools.IrisToolbelt;
+import org.bukkit.World;
+
+World world = Bukkit.getWorld("mystudio");
+
+if (IrisToolbelt.isIrisStudioWorld(world)) {
+    // This is a studio world with hot-reload
+    sender.sendMessage("Studio mode active!");
+}
+
+// Alternative
+if (IrisToolbelt.isStudio(world)) {
+    // Same check
+}
+```
+
+## Complete Studio Workflow
+
+<Steps>
+  <Step title="Create or Open Project">
+    ```java
+    StudioSVC studio = Iris.service(StudioSVC.class);
+    studio.create(sender, "mypack", "overworld");
+    ```
+  </Step>
+  
+  <Step title="Edit Dimension Files">
+    ```java
+    studio.openVSCode(sender, "mypack");
+    // Edit JSON files in VSCode
+    ```
+  </Step>
+  
+  <Step title="Test Changes">
+    Changes apply immediately to new chunks in the studio world
+  </Step>
+  
+  <Step title="Compile for Production">
+    ```java
+    File pack = studio.compilePackage(sender, "mypack", false, true);
+    sender.sendMessage("Pack ready: " + pack.getName());
+    ```
+  </Step>
+  
+  <Step title="Close Studio">
+    ```java
+    studio.close();
+    ```
+  </Step>
+</Steps>
+
+## Best Practices
+
+<Tip>
+  Always close studio projects before opening new ones to avoid conflicts.
+</Tip>
+
+<Tip>
+  Use studio mode for all dimension development - it saves time by eliminating server restarts.
+</Tip>
+
+<Warning>
+  Studio worlds are **deleted on unload**. Never use studio mode for production worlds with player data.
+</Warning>
+
+## Dimension Listing
+
+Studio service maintains a listing of available dimensions:
+
+```java
+import com.volmit.iris.util.collection.KMap;
+
+// Get dimension listing (cached)
+KMap<String, String> listing = studio.getListing(true);
+
+// Get fresh listing from GitHub
+KMap<String, String> freshListing = studio.getListing(false);
+
+// Listing maps dimension names to repository paths
+String repoPath = listing.get("overworld");
+// Returns: "IrisDimensions/overworld/stable"
+```
+
+## Related APIs
+
+- [Creating Worlds](/generation/creating-worlds) - Create studio worlds programmatically
+- [Terrain Editing](/generation/terrain-editing) - Edit terrain in studio worlds
+- [Edit Commands](/generation/terrain-editing#studio-mode-integration) - In-game editing tools

@@ -1,0 +1,588 @@
+---
+title: Decorators Guide  
+description: Add grass, flowers, and detailed surface decorations to your biomes
+---
+
+Decorators add small, surface-level details to your biomes like grass, flowers, mushrooms, and other stackable blocks.
+
+## What is a Decorator?
+
+Decorators are lightweight placement systems for blocks that:
+
+- Place on the surface of terrain
+- Can stack vertically (grass, kelp, cactus)
+- Have simple placement rules
+- Generate very efficiently
+
+Think of decorators as "paint" for your terrain surface.
+
+## Basic Decorator
+
+```json
+{
+  "decorators": [
+    {
+      "chance": 0.15,
+      "palette": [
+        { "block": "grass" },
+        { "block": "tall_grass" }
+      ]
+    }
+  ]
+}
+```
+
+This creates grass decoration with 15% coverage.
+
+## Configuration Fields
+
+### Essential Properties
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `chance` | Double | 0.1 | Placement probability per block (0-1, required) |
+| `palette` | BlockData[] | - | Blocks to place (required) |
+| `stackMin` | Integer | 1 | Minimum stack height |
+| `stackMax` | Integer | 1 | Maximum stack height |
+
+### Block Palette
+
+**Simple palette:**
+
+```json
+{
+  "palette": [
+    { "block": "grass" },
+    { "block": "tall_grass" },
+    { "block": "fern" }
+  ]
+}
+```
+
+**Weighted palette:**
+
+```json
+{
+  "palette": [
+    { "block": "grass", "weight": 10 },
+    { "block": "tall_grass", "weight": 3 },
+    { "block": "poppy", "weight": 1 }
+  ]
+}
+```
+
+Higher weight = more common.
+
+### Stacking
+
+**For tall plants like sugar cane, cactus, kelp:**
+
+```json
+{
+  "chance": 0.05,
+  "palette": [{ "block": "sugar_cane" }],
+  "stackMin": 2,
+  "stackMax": 4,
+  "heightVariance": {
+    "style": "STATIC",
+    "zoom": 1.0
+  }
+}
+```
+
+- `stackMin`: Minimum blocks tall
+- `stackMax`: Maximum blocks tall  
+- `heightVariance`: How height varies (noise style)
+
+**Scale stacking by cave height:**
+
+```json
+{
+  "scaleStack": true,
+  "stackMin": 25,
+  "stackMax": 75,
+  "absoluteMaxStack": 30
+}
+```
+
+In caves, stack will be 25-75% of cave height (capped at 30 blocks).
+
+### Top Palette
+
+**Different blocks at the top of stacks:**
+
+```json
+{
+  "palette": [{ "block": "bamboo" }],
+  "topPalette": [{ "block": "bamboo[leaves=large]" }],
+  "topThreshold": 0.8,
+  "stackMin": 5,
+  "stackMax": 15
+}
+```
+
+- `topPalette`: Blocks for the top section
+- `topThreshold`: When to switch (0.8 = top 20%)
+
+### Distribution Styles
+
+**How decorators are scattered:**
+
+```json
+{
+  "style": {
+    "style": "STATIC",
+    "zoom": 1.0
+  },
+  "variance": {
+    "style": "SIMPLEX",
+    "zoom": 5.0
+  }
+}
+```
+
+- `style`: Where to place (STATIC = random, SIMPLEX/etc = patches)
+- `variance`: How to pick from palette
+
+Common styles:
+- `STATIC`: Completely random (vanilla-like)
+- `SIMPLEX`: Smooth, natural patches
+- `CELLULAR_IRIS_DOUBLE`: Cell-based clusters
+- `GLOB`: Blobby patches
+
+### Placement Conditions
+
+**Slope restrictions:**
+
+```json
+{
+  "slopeCondition": {
+    "enabled": true,
+    "min": 0,
+    "max": 3
+  }
+}
+```
+
+Only place on relatively flat terrain (0-3 slope).
+
+**Block whitelist/blacklist:**
+
+```json
+{
+  "whitelist": [
+    { "block": "grass_block" },
+    { "block": "dirt" }
+  ]
+}
+```
+
+Only place on these blocks.
+
+```json
+{
+  "blacklist": [
+    { "block": "sand" },
+    { "block": "stone" }
+  ]
+}
+```
+
+Never place on these blocks.
+
+**Force placement:**
+
+```json
+{
+  "forcePlace": true,
+  "forceBlock": { "block": "grass_block" }
+}
+```
+
+Ignore surface block checks and optionally replace surface.
+
+### Decoration Parts
+
+**For underwater/cave decoration:**
+
+```json
+{
+  "partOf": "SEA_SURFACE"
+}
+```
+
+Options:
+- `NONE`: Normal surface decoration
+- `SEA_SURFACE`: Top of underwater areas
+- `SEA_FLOOR`: Ocean floor
+- `SHORE_LINE`: Beach/shore areas
+- `CAVE_CEILING`: Cave roofs
+- `CAVE_FLOOR`: Cave floors
+
+## Example Decorators
+
+### Grassland Coverage
+
+```json
+{
+  "chance": 0.25,
+  "palette": [
+    { "block": "grass", "weight": 10 },
+    { "block": "tall_grass", "weight": 5 },
+    { "block": "fern", "weight": 2 }
+  ],
+  "style": {
+    "style": "SIMPLEX",
+    "zoom": 8.0
+  },
+  "variance": {
+    "style": "STATIC",
+    "zoom": 1.0
+  }
+}
+```
+
+### Flower Patches
+
+```json
+{
+  "chance": 0.08,
+  "palette": [
+    { "block": "poppy", "weight": 1 },
+    { "block": "dandelion", "weight": 1 },
+    { "block": "azure_bluet", "weight": 1 },
+    { "block": "oxeye_daisy", "weight": 1 }
+  ],
+  "style": {
+    "style": "CELLULAR_IRIS_DOUBLE",
+    "zoom": 12.0
+  },
+  "variance": {
+    "style": "SIMPLEX",
+    "zoom": 3.0
+  }
+}
+```
+
+### Sugar Cane
+
+```json
+{
+  "chance": 0.02,
+  "palette": [{ "block": "sugar_cane" }],
+  "stackMin": 2,
+  "stackMax": 4,
+  "heightVariance": {
+    "style": "STATIC",
+    "zoom": 1.0
+  },
+  "whitelist": [
+    { "block": "grass_block" },
+    { "block": "dirt" },
+    { "block": "sand" }
+  ]
+}
+```
+
+Note: Sugar cane needs water adjacent (handled by Minecraft's block rules).
+
+### Cactus
+
+```json
+{
+  "chance": 0.01,
+  "palette": [{ "block": "cactus" }],
+  "stackMin": 1,
+  "stackMax": 3,
+  "heightVariance": {
+    "style": "SIMPLEX",
+    "zoom": 5.0
+  },
+  "whitelist": [
+    { "block": "sand" },
+    { "block": "red_sand" }
+  ],
+  "style": {
+    "style": "GLOB",
+    "zoom": 15.0
+  }
+}
+```
+
+### Kelp (Underwater)
+
+```json
+{
+  "chance": 0.15,
+  "palette": [{ "block": "kelp_plant" }],
+  "stackMin": 5,
+  "stackMax": 20,
+  "heightVariance": {
+    "style": "SIMPLEX",
+    "zoom": 3.0
+  },
+  "partOf": "SEA_SURFACE",
+  "whitelist": [
+    { "block": "gravel" },
+    { "block": "sand" },
+    { "block": "dirt" }
+  ]
+}
+```
+
+### Sea Pickles
+
+```json
+{
+  "chance": 0.05,
+  "palette": [
+    { "block": "sea_pickle[pickles=1]" },
+    { "block": "sea_pickle[pickles=2]" },
+    { "block": "sea_pickle[pickles=3]" },
+    { "block": "sea_pickle[pickles=4]" }
+  ],
+  "partOf": "SEA_FLOOR",
+  "style": {
+    "style": "CELLULAR_IRIS_DOUBLE",
+    "zoom": 20.0
+  }
+}
+```
+
+### Mushrooms (Cave Floor)
+
+```json
+{
+  "chance": 0.03,
+  "palette": [
+    { "block": "red_mushroom", "weight": 1 },
+    { "block": "brown_mushroom", "weight": 1 }
+  ],
+  "partOf": "CAVE_FLOOR",
+  "style": {
+    "style": "GLOB",
+    "zoom": 8.0
+  }
+}
+```
+
+### Stalactites (Cave Ceiling)
+
+```json
+{
+  "chance": 0.05,
+  "palette": [
+    { "block": "pointed_dripstone[vertical_direction=down]" }
+  ],
+  "partOf": "CAVE_CEILING",
+  "stackMin": 1,
+  "stackMax": 5,
+  "style": {
+    "style": "SIMPLEX",
+    "zoom": 10.0
+  }
+}
+```
+
+### Dead Bushes
+
+```json
+{
+  "chance": 0.005,
+  "palette": [{ "block": "dead_bush" }],
+  "whitelist": [
+    { "block": "sand" },
+    { "block": "red_sand" },
+    { "block": "terracotta" }
+  ],
+  "style": {
+    "style": "STATIC",
+    "zoom": 1.0
+  }
+}
+```
+
+### Bamboo Forest
+
+```json
+{
+  "chance": 0.12,
+  "palette": [{ "block": "bamboo[age=0,leaves=none,stage=0]" }],
+  "topPalette": [{ "block": "bamboo[leaves=large]" }],
+  "topThreshold": 0.85,
+  "stackMin": 8,
+  "stackMax": 16,
+  "heightVariance": {
+    "style": "SIMPLEX",
+    "zoom": 4.0
+  },
+  "style": {
+    "style": "CELLULAR_IRIS_DOUBLE",
+    "zoom": 25.0
+  }
+}
+```
+
+### Lily Pads
+
+```json
+{
+  "chance": 0.08,
+  "palette": [{ "block": "lily_pad" }],
+  "partOf": "SEA_SURFACE",
+  "style": {
+    "style": "GLOB",
+    "zoom": 6.0
+  }
+}
+```
+
+## Advanced Techniques
+
+### Layered Decoration
+
+**Combine multiple decorators for depth:**
+
+```json
+{
+  "decorators": [
+    {
+      "chance": 0.3,
+      "palette": [{ "block": "grass" }]
+    },
+    {
+      "chance": 0.1,
+      "palette": [{ "block": "tall_grass" }]
+    },
+    {
+      "chance": 0.05,
+      "palette": [{ "block": "poppy" }, { "block": "dandelion" }]
+    },
+    {
+      "chance": 0.02,
+      "palette": [{ "block": "allium" }, { "block": "azure_bluet" }]
+    }
+  ]
+}
+```
+
+### Biome-Specific Decoration
+
+**Tailor decorators to biome theme:**
+
+**Forest floor:**
+```json
+[
+  {
+    "chance": 0.15,
+    "palette": [{ "block": "grass" }, { "block": "fern" }]
+  },
+  {
+    "chance": 0.05,
+    "palette": [{ "block": "red_mushroom" }, { "block": "brown_mushroom" }]
+  }
+]
+```
+
+**Swamp:**
+```json
+[
+  {
+    "chance": 0.2,
+    "palette": [{ "block": "grass" }],
+    "style": { "style": "GLOB", "zoom": 10.0 }
+  },
+  {
+    "chance": 0.08,
+    "palette": [{ "block": "brown_mushroom" }]
+  },
+  {
+    "chance": 0.04,
+    "palette": [{ "block": "lily_pad" }],
+    "partOf": "SEA_SURFACE"
+  }
+]
+```
+
+### Seasonal Variation
+
+**Use block states for variety:**
+
+```json
+{
+  "chance": 0.1,
+  "palette": [
+    { "block": "wheat[age=0]" },
+    { "block": "wheat[age=1]" },
+    { "block": "wheat[age=2]" },
+    { "block": "wheat[age=3]" }
+  ],
+  "variance": {
+    "style": "SIMPLEX",
+    "zoom": 15.0
+  }
+}
+```
+
+## Performance Tips
+
+### Optimize Chance Values
+
+- Use lower chances for rare decorations
+- Dense decoration (high chance) can impact generation speed
+- Balance aesthetics with performance
+
+### Use Appropriate Styles
+
+- `STATIC` is fastest
+- Complex noise styles add computation
+- Use simpler styles for very common decorators
+
+### Stack Wisely
+
+- Large `stackMax` values can slow generation
+- Use `absoluteMaxStack` to cap extreme cases
+- Consider `scaleStack` for caves
+
+<Accordion title="FAQ">
+  <AccordionGroup>
+    <Accordion title="What's the difference between decorators and objects?">
+      Decorators are for small, surface-level blocks (grass, flowers). Objects are for 3D structures (trees, buildings). Use decorators for simple, numerous items and objects for complex structures.
+    </Accordion>
+    
+    <Accordion title="Why isn't my decorator placing?">
+      Check:
+      - `chance` is reasonable (try 1.0 for testing)
+      - Surface blocks match `whitelist` if defined
+      - Not blocked by `blacklist`
+      - `slopeCondition` allows placement
+      - `partOf` matches the area type
+    </Accordion>
+    
+    <Accordion title="Can decorators place underwater?">
+      Yes! Use `partOf: SEA_SURFACE` or `SEA_FLOOR` for underwater decoration.
+    </Accordion>
+    
+    <Accordion title="How do I make flower patches instead of scattered flowers?">
+      Use a noise-based `style` like `CELLULAR_IRIS_DOUBLE` or `GLOB` with appropriate zoom:
+      ```json
+      {
+        "style": {
+          "style": "GLOB",
+          "zoom": 12.0
+        }
+      }
+      ```
+    </Accordion>
+    
+    <Accordion title="What does zoom do in decoration styles?">
+      Higher zoom = larger, less frequent patches. Lower zoom = smaller, more frequent patches. Experiment to find the right scale for your biome.
+    </Accordion>
+  </AccordionGroup>
+</Accordion>
+
+## Next Steps
+
+- Combine with [Objects](/objects-guide) for complete biomes
+- Learn about [Biomes](/biomes-guide) to use decorators effectively
+- Explore [Loot Tables](/loot-tables) for interactive decorations

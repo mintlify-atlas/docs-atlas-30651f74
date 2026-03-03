@@ -1,0 +1,641 @@
+---
+title: "Configuration"
+description: "Configure Iris settings for optimal performance and behavior"
+---
+
+## Configuration File
+
+Iris stores all configuration in `plugins/Iris/settings.json`. This file is automatically created on first launch with default values.
+
+<Info>
+  Configuration changes are hot-reloaded automatically. Iris checks for file modifications every 60 seconds and applies changes without requiring a restart.
+</Info>
+
+### Accessing Configuration
+
+<CodeGroup>
+```bash In-Game
+# Edit settings via command
+/iris settings
+
+# Reload configuration manually
+/iris reload
+```
+
+```bash File System
+# Edit with your preferred editor
+nano plugins/Iris/settings.json
+
+# Or use VS Code
+code plugins/Iris/settings.json
+```
+</CodeGroup>
+
+## Configuration Structure
+
+The `settings.json` file is organized into sections based on functionality:
+
+```json
+{
+  "general": { ... },
+  "world": { ... },
+  "gui": { ... },
+  "autoConfiguration": { ... },
+  "generator": { ... },
+  "concurrency": { ... },
+  "studio": { ... },
+  "performance": { ... },
+  "updater": { ... },
+  "pregen": { ... },
+  "sentry": { ... }
+}
+```
+
+## General Settings
+
+From `IrisSettings.java:209-231`, general plugin behavior:
+
+```json
+"general": {
+  "commandSounds": true,
+  "debug": false,
+  "dumpMantleOnError": false,
+  "disableNMS": false,
+  "pluginMetrics": true,
+  "splashLogoStartup": true,
+  "useConsoleCustomColors": true,
+  "useCustomColorsIngame": true,
+  "adjustVanillaHeight": false,
+  "forceMainWorld": "",
+  "spinh": -20,
+  "spins": 7,
+  "spinb": 8
+}
+```
+
+<AccordionGroup>
+  <Accordion title="commandSounds" icon="volume">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Play sounds when executing Iris commands.
+  </Accordion>
+  
+  <Accordion title="debug" icon="bug">
+    **Type**: `boolean`  
+    **Default**: `false`
+    
+    Enable debug logging. Logs detailed information to console and `plugins/Iris/debug/`.
+    
+    <Warning>
+      Debug mode significantly increases log output and file I/O. Only enable when troubleshooting.
+    </Warning>
+    
+    Toggle via command:
+    ```bash
+    /iris debug on
+    /iris debug off
+    ```
+  </Accordion>
+  
+  <Accordion title="disableNMS" icon="ban">
+    **Type**: `boolean`  
+    **Default**: `false`
+    
+    Disable Native Minecraft Server (NMS) bindings. 
+    
+    <Note>
+      NMS enables custom biomes. Only disable if experiencing compatibility issues.
+    </Note>
+  </Accordion>
+  
+  <Accordion title="pluginMetrics" icon="chart-simple">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Enable anonymous usage statistics via bStats. Helps developers understand plugin usage.
+  </Accordion>
+  
+  <Accordion title="useConsoleCustomColors" icon="palette">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Use colored output in server console (requires Adventure API support).
+  </Accordion>
+</AccordionGroup>
+
+## World Settings
+
+From `IrisSettings.java:124-135`, world behavior configuration:
+
+```json
+"world": {
+  "asyncTeleport": {
+    "enabled": false,
+    "loadViewDistance": 2,
+    "urgent": false
+  },
+  "postLoadBlockUpdates": true,
+  "forcePersistEntities": true,
+  "anbientEntitySpawningSystem": true,
+  "asyncTickIntervalMS": 700,
+  "targetSpawnEntitiesPerChunk": 0.95,
+  "markerEntitySpawningSystem": true,
+  "effectSystem": true,
+  "worldEditWandCUI": true,
+  "globalPregenCache": false
+}
+```
+
+<AccordionGroup>
+  <Accordion title="asyncTeleport" icon="wand-magic-sparkles">
+    **Type**: `object`
+    
+    Configure asynchronous teleportation:
+    - `enabled`: Enable async teleport (default: `false`)
+    - `loadViewDistance`: Chunks to load before teleport (default: `2`)
+    - `urgent`: High-priority chunk loading (default: `false`)
+    
+    <Info>
+      From `IrisSettings.java:117-121`, async teleport loads chunks before moving the player for smoother transitions.
+    </Info>
+  </Accordion>
+  
+  <Accordion title="markerEntitySpawningSystem" icon="location-dot">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Use marker entities for custom spawning systems in dimension packs.
+  </Accordion>
+  
+  <Accordion title="globalPregenCache" icon="database">
+    **Type**: `boolean`  
+    **Default**: `false`
+    
+    Share pregeneration cache between worlds. Useful for multiple worlds with the same dimension.
+    
+    <Warning>
+      Only enable if you understand the implications. Different seeds with same dimension may cause issues.
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+## Concurrency Settings
+
+From `IrisSettings.java:138-146`, thread pool configuration:
+
+```json
+"concurrency": {
+  "parallelism": -1,
+  "ioParallelism": -2,
+  "worldGenParallelism": -1
+}
+```
+
+<Note>
+  Negative values are interpreted as multiples of CPU cores:
+  - `-1` = Number of CPU cores
+  - `-2` = Half the number of CPU cores  
+  - `-4` = Quarter of CPU cores
+  - Positive values = Exact thread count
+</Note>
+
+<AccordionGroup>
+  <Accordion title="parallelism" icon="microchip">
+    **Type**: `integer`  
+    **Default**: `-1`
+    
+    General parallelism for non-world-gen tasks.
+    
+    From `IrisSettings.java:51-56`:
+    ```java
+    public static int getThreadCount(int c) {
+        return Math.max(switch (c) {
+            case -1, -2, -4 -> Runtime.getRuntime().availableProcessors() / -c;
+            default -> Math.max(c, 2);
+        }, 1);
+    }
+    ```
+    
+    **Recommendations**:
+    - High-end servers (16+ cores): `-1` (use all cores)
+    - Medium servers (8-16 cores): `-1` or `-2`
+    - Low-end servers (4-8 cores): `-2` or `-4`
+  </Accordion>
+  
+  <Accordion title="ioParallelism" icon="hard-drive">
+    **Type**: `integer`  
+    **Default**: `-2`
+    
+    Thread pool for I/O operations (file reading/writing).
+    
+    <Tip>
+      I/O operations don't need as many threads. `-2` (half cores) is optimal for most servers.
+    </Tip>
+  </Accordion>
+  
+  <Accordion title="worldGenParallelism" icon="earth">
+    **Type**: `integer`  
+    **Default**: `-1`
+    
+    Dedicated threads for world generation.
+    
+    This is the most important performance setting. More threads = faster generation but higher CPU usage.
+    
+    **Example configurations**:
+    ```json
+    // Maximum performance (use all cores)
+    "worldGenParallelism": -1
+    
+    // Balanced (half cores, leave room for other tasks)
+    "worldGenParallelism": -2
+    
+    // Conservative (4 threads exactly)
+    "worldGenParallelism": 4
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Performance Settings
+
+From `IrisSettings.java:158-175`, caching and optimization:
+
+```json
+"performance": {
+  "engineSVC": {
+    "useVirtualThreads": true,
+    "forceMulticoreWrite": false,
+    "priority": 5
+  },
+  "trimMantleInStudio": false,
+  "mantleKeepAlive": 30,
+  "noiseCacheSize": 1024,
+  "resourceLoaderCacheSize": 1024,
+  "objectLoaderCacheSize": 4096,
+  "scriptLoaderCacheSize": 512,
+  "tectonicPlateSize": -1,
+  "mantleCleanupDelay": 200
+}
+```
+
+<AccordionGroup>
+  <Accordion title="engineSVC.useVirtualThreads" icon="thread">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Use Java 21 virtual threads for engine operations.
+    
+    <Info>
+      Virtual threads (Project Loom) reduce memory overhead and improve scalability. Requires Java 21+.
+    </Info>
+  </Accordion>
+  
+  <Accordion title="noiseCacheSize" icon="wave-square">
+    **Type**: `integer`  
+    **Default**: `1024`
+    
+    Cache size for noise generation. Higher values = more memory, fewer recalculations.
+    
+    **Recommendations**:
+    - 8GB+ RAM: `2048` or higher
+    - 4-8GB RAM: `1024` (default)
+    - Less than 4GB RAM: `512`
+  </Accordion>
+  
+  <Accordion title="objectLoaderCacheSize" icon="cubes">
+    **Type**: `integer`  
+    **Default**: `4096`
+    
+    Cache size for loaded objects (structures, trees, etc.).
+    
+    This is the largest cache because objects are frequently reused. Increase if using many custom structures.
+  </Accordion>
+  
+  <Accordion title="tectonicPlateSize" icon="globe">
+    **Type**: `integer`  
+    **Default**: `-1`
+    
+    Tectonic plate simulation size. `-1` = auto-calculate based on available memory.
+    
+    From `IrisSettings.java:169-174`:
+    ```java
+    public int getTectonicPlateSize() {
+        if (tectonicPlateSize > 0)
+            return tectonicPlateSize;
+        
+        return (int) (getHardware.getProcessMemory() / 512L);
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Generator Settings
+
+From `IrisSettings.java:248-256`, world generation behavior:
+
+```json
+"generator": {
+  "defaultWorldType": "overworld",
+  "maxBiomeChildDepth": 4,
+  "preventLeafDecay": true,
+  "useMulticore": false,
+  "useMulticoreMantle": false,
+  "offsetNoiseTypes": false,
+  "earlyCustomBlocks": false
+}
+```
+
+<AccordionGroup>
+  <Accordion title="defaultWorldType" icon="earth-americas">
+    **Type**: `string`  
+    **Default**: `"overworld"`
+    
+    Default dimension pack when creating worlds without specifying a dimension.
+    
+    From `Iris.java:641`:
+    ```java
+    if (id == null || id.isEmpty()) 
+        id = IrisSettings.get().getGenerator().getDefaultWorldType();
+    ```
+  </Accordion>
+  
+  <Accordion title="maxBiomeChildDepth" icon="layer-group">
+    **Type**: `integer`  
+    **Default**: `4`
+    
+    Maximum depth for nested child biomes. Higher values allow more complex biome variations but increase generation time.
+  </Accordion>
+  
+  <Accordion title="preventLeafDecay" icon="leaf">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Prevent leaves from decaying in generated structures. Recommended for custom trees.
+  </Accordion>
+</AccordionGroup>
+
+## Pregeneration Settings
+
+From `IrisSettings.java:149-155`, pregen configuration:
+
+```json
+"pregen": {
+  "useCacheByDefault": true,
+  "useHighPriority": false,
+  "useVirtualThreads": false,
+  "useTicketQueue": true,
+  "maxConcurrency": 256
+}
+```
+
+<AccordionGroup>
+  <Accordion title="useCacheByDefault" icon="floppy-disk">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Cache generated chunks to disk during pregeneration. Significantly faster for large areas.
+  </Accordion>
+  
+  <Accordion title="maxConcurrency" icon="forward-fast">
+    **Type**: `integer`  
+    **Default**: `256`
+    
+    Maximum concurrent chunk generation during pregeneration.
+    
+    <Warning>
+      Higher values = faster pregeneration but more memory usage. Don't exceed your server's capability.
+    </Warning>
+    
+    **Recommendations**:
+    - 16GB+ RAM: `256-512`
+    - 8GB RAM: `128-256`
+    - 4GB RAM: `64-128`
+  </Accordion>
+  
+  <Accordion title="useVirtualThreads" icon="v">
+    **Type**: `boolean`  
+    **Default**: `false`
+    
+    Use virtual threads for pregeneration (Java 21+ feature).
+    
+    <Note>
+      Currently disabled by default. May improve performance on Java 21+ servers.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+## Studio Settings
+
+From `IrisSettings.java:259-264`, Studio mode configuration:
+
+```json
+"studio": {
+  "studio": true,
+  "openVSCode": true,
+  "disableTimeAndWeather": true,
+  "autoStartDefaultStudio": false
+}
+```
+
+<AccordionGroup>
+  <Accordion title="studio" icon="code">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Enable Studio mode functionality.
+  </Accordion>
+  
+  <Accordion title="openVSCode" icon="file-code">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Automatically open VS Code when starting a studio world (if VS Code is installed).
+  </Accordion>
+  
+  <Accordion title="disableTimeAndWeather" icon="cloud-sun">
+    **Type**: `boolean`  
+    **Default**: `true`
+    
+    Disable time progression and weather in studio worlds for easier testing.
+  </Accordion>
+  
+  <Accordion title="autoStartDefaultStudio" icon="play">
+    **Type**: `boolean`  
+    **Default**: `false`
+    
+    Automatically start a studio world on server startup.
+    
+    <Warning>
+      Only enable for dedicated development servers. From `Iris.java:515-533`, this creates a studio world with the default dimension.
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+## Auto-Configuration
+
+From `IrisSettings.java:110-114`, server auto-configuration:
+
+```json
+"autoConfiguration": {
+  "configureSpigotTimeoutTime": true,
+  "configurePaperWatchdogDelay": true,
+  "autoRestartOnCustomBiomeInstall": true
+}
+```
+
+<Info>
+  Auto-configuration modifies your server's configuration files to optimize for Iris. From `ServerConfigurator.java`, this runs on startup.
+</Info>
+
+## Performance Tuning Guide
+
+### High-Performance Configuration
+
+For dedicated servers with 16GB+ RAM:
+
+```json
+{
+  "concurrency": {
+    "parallelism": -1,
+    "ioParallelism": -2,
+    "worldGenParallelism": -1
+  },
+  "performance": {
+    "noiseCacheSize": 2048,
+    "resourceLoaderCacheSize": 2048,
+    "objectLoaderCacheSize": 8192
+  },
+  "pregen": {
+    "maxConcurrency": 512,
+    "useVirtualThreads": true
+  }
+}
+```
+
+### Balanced Configuration
+
+For shared servers with 8GB RAM:
+
+```json
+{
+  "concurrency": {
+    "parallelism": -2,
+    "ioParallelism": -4,
+    "worldGenParallelism": -2
+  },
+  "performance": {
+    "noiseCacheSize": 1024,
+    "resourceLoaderCacheSize": 1024,
+    "objectLoaderCacheSize": 4096
+  },
+  "pregen": {
+    "maxConcurrency": 128
+  }
+}
+```
+
+### Low-Resource Configuration
+
+For budget servers with 4GB RAM:
+
+```json
+{
+  "concurrency": {
+    "parallelism": -4,
+    "ioParallelism": -4,
+    "worldGenParallelism": 4
+  },
+  "performance": {
+    "noiseCacheSize": 512,
+    "resourceLoaderCacheSize": 512,
+    "objectLoaderCacheSize": 2048
+  },
+  "pregen": {
+    "maxConcurrency": 64
+  }
+}
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Settings not applying">
+    **Symptoms**: Changes to settings.json don't take effect
+    
+    **Solutions**:
+    1. Verify JSON syntax (use a JSON validator)
+    2. Manually reload: `/iris reload`
+    3. Check file permissions (must be writable)
+    4. Look for errors in `logs/latest.log`
+  </Accordion>
+  
+  <Accordion title="High memory usage">
+    **Symptoms**: Server runs out of memory during generation
+    
+    **Solutions**:
+    1. Reduce cache sizes in `performance` section
+    2. Lower `pregen.maxConcurrency`
+    3. Decrease `worldGenParallelism`
+    4. Allocate more RAM: `java -Xmx8G -jar paper.jar`
+  </Accordion>
+  
+  <Accordion title="Slow world generation">
+    **Symptoms**: Chunks generate slowly
+    
+    **Solutions**:
+    1. Increase `worldGenParallelism` to `-1`
+    2. Raise cache sizes if you have spare RAM
+    3. Enable `performance.engineSVC.useVirtualThreads`
+    4. Use SSD storage for faster I/O
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Configuration
+
+### Sentry Error Reporting
+
+From `IrisSettings.java:234-238`:
+
+```json
+"sentry": {
+  "includeServerId": true,
+  "disableAutoReporting": false,
+  "debug": false
+}
+```
+
+Control error reporting to Sentry for crash analysis.
+
+### GUI Settings
+
+From `IrisSettings.java:241-245`:
+
+```json
+"gui": {
+  "useServerLaunchedGuis": true,
+  "maximumPregenGuiFPS": false,
+  "colorMode": true
+}
+```
+
+Configure Iris GUI behavior (pregeneration visualizer, etc.).
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Learn to use Iris programmatically
+  </Card>
+  
+  <Card title="Dimension Packs" icon="box">
+    Create custom dimension packs
+  </Card>
+  
+  <Card title="Commands Reference" icon="terminal">
+    Complete command documentation
+  </Card>
+  
+  <Card title="Discord Support" icon="discord" href="https://discord.gg/3xxPTpT">
+    Get help from the community
+  </Card>
+</CardGroup>

@@ -1,0 +1,426 @@
+---
+title: Biomes
+description: Understanding biome configuration and terrain generation in Iris
+---
+
+## What is a Biome?
+
+A **biome** in Iris defines the local terrain characteristics for a specific area. Unlike Minecraft's vanilla biomes which only control block types and decorations, Iris biomes define:
+
+- **Terrain shape** (height, slopes, noise patterns)
+- **Block layers** (surface blocks, underground strata)
+- **Decorations** (flowers, grass, mushrooms)
+- **Objects** (trees, rocks, structures)
+- **Effects** (particles, sounds, potion effects)
+- **Environmental settings** (sky color, fog, water color)
+
+## Biome Hierarchy
+
+```
+Region
+  └─ Biome
+      ├─ Layers (Block palettes by height)
+      ├─ Generators (Terrain height/shape)
+      ├─ Decorators (Surface details)
+      ├─ Objects (Trees, rocks, structures)
+      └─ Children (Sub-biomes)
+```
+
+<Info>
+Biomes are where most terrain generation happens. They combine noise generators, block layers, and decorations to create the final landscape.
+</Info>
+
+## Basic Structure
+
+### Minimal Biome
+
+```json biomes/grassland.json
+{
+  "name": "Grassland",
+  "layers": [
+    {
+      "palette": [
+        { "block": "grass_block" }
+      ]
+    },
+    {
+      "minHeight": 1,
+      "maxHeight": 3,
+      "palette": [
+        { "block": "dirt" }
+      ]
+    }
+  ]
+}
+```
+
+<ParamField path="name" type="string" required>
+  Human-readable biome name (minimum 2 characters)
+</ParamField>
+
+<ParamField path="layers" type="IrisBiomePaletteLayer[]">
+  Stack of block layers that make up the terrain. Layers descend from the surface.
+</ParamField>
+
+## Terrain Generation
+
+### Height Generators
+
+Generators control the height and shape of terrain:
+
+```json
+{
+  "generators": [
+    {
+      "generator": "plains-terrain",
+      "min": 64,
+      "max": 78
+    }
+  ]
+}
+```
+
+<ParamField path="generators" type="IrisBiomeGeneratorLink[]">
+  List of terrain generators with min/max height constraints. Generators are referenced from `generators/` folder.
+</ParamField>
+
+<ParamField path="generators[].generator" type="string">
+  File name of the generator (without `.json`)
+</ParamField>
+
+<ParamField path="generators[].min" type="integer">
+  Minimum height this generator can produce
+</ParamField>
+
+<ParamField path="generators[].max" type="integer">
+  Maximum height this generator can produce
+</ParamField>
+
+### Multiple Generators (Composite Terrain)
+
+Blend multiple noise patterns:
+
+```json
+{
+  "generators": [
+    {
+      "generator": "base-hills",
+      "min": 64,
+      "max": 90
+    },
+    {
+      "generator": "mountain-peaks",
+      "min": 85,
+      "max": 140
+    }
+  ]
+}
+```
+
+Iris blends these generators to create varied terrain height.
+
+## Block Layers
+
+### Layer Stack
+
+Layers descend from the surface:
+
+```json
+{
+  "layers": [
+    {
+      "palette": [
+        { "block": "grass_block" }
+      ]
+    },
+    {
+      "minHeight": 2,
+      "maxHeight": 4,
+      "palette": [
+        { "block": "dirt" }
+      ]
+    },
+    {
+      "minHeight": 40,
+      "maxHeight": 60,
+      "palette": [
+        { "block": "stone" },
+        { "block": "andesite" }
+      ],
+      "style": {
+        "style": "GLOB",
+        "zoom": 0.15
+      }
+    }
+  ]
+}
+```
+
+<ParamField path="layers[].palette" type="BlockData[]">
+  Array of blocks for this layer. Can include multiple blocks for variety.
+</ParamField>
+
+<ParamField path="layers[].minHeight" type="integer">
+  Minimum thickness of this layer in blocks
+</ParamField>
+
+<ParamField path="layers[].maxHeight" type="integer">
+  Maximum thickness of this layer in blocks
+</ParamField>
+
+<ParamField path="layers[].style" type="IrisGeneratorStyle">
+  Noise pattern for varying block selection within the layer
+</ParamField>
+
+### Varying Block Palettes
+
+Add variety with weighted blocks:
+
+```json
+{
+  "palette": [
+    { "block": "stone", "weight": 10 },
+    { "block": "andesite", "weight": 1 },
+    { "block": "diorite", "weight": 1 }
+  ]
+}
+```
+
+Higher weights make blocks more common.
+
+## Decorations and Objects
+
+### Decorators (Small Details)
+
+```json
+{
+  "decorators": [
+    {
+      "chance": 0.1,
+      "palette": [
+        { "block": "grass" },
+        { "block": "tall_grass" }
+      ]
+    },
+    {
+      "chance": 0.02,
+      "palette": [
+        { "block": "poppy" },
+        { "block": "dandelion" }
+      ]
+    }
+  ]
+}
+```
+
+<ParamField path="decorators" type="IrisDecorator[]">
+  Surface decorations placed on top of the terrain
+</ParamField>
+
+<ParamField path="decorators[].chance" type="number">
+  Probability (0.0-1.0) of placing this decorator per surface block
+</ParamField>
+
+### Objects (Large Features)
+
+```json
+{
+  "objects": [
+    {
+      "chance": 0.008,
+      "place": [
+        "oak-tree",
+        "birch-tree"
+      ],
+      "mode": "PAINT"
+    }
+  ]
+}
+```
+
+<ParamField path="objects" type="IrisObjectPlacement[]">
+  Large structures and objects placed in the biome
+</ParamField>
+
+<ParamField path="objects[].chance" type="number">
+  Spawn chance per chunk
+</ParamField>
+
+<ParamField path="objects[].place" type="string[]">
+  List of object files from `objects/` folder
+</ParamField>
+
+<ParamField path="objects[].mode" type="ObjectPlaceMode">
+  Placement mode: `PAINT` (replace blocks), `STILT` (on pillars), `MAX_HEIGHT` (at surface)
+</ParamField>
+
+## Sub-Biomes (Children)
+
+### Creating Variation
+
+```json
+{
+  "name": "Forest",
+  "children": [
+    "dense-forest",
+    "forest-clearing"
+  ],
+  "childShrinkage": 3,
+  "childStyle": {
+    "style": "CELLULAR",
+    "zoom": 0.5
+  }
+}
+```
+
+<ParamField path="children" type="string[]">
+  List of child biome files that can spawn within this biome
+</ParamField>
+
+<ParamField path="childShrinkage" type="integer">
+  Higher values = smaller child biome patches
+</ParamField>
+
+<ParamField path="childStyle" type="IrisGeneratorStyle">
+  Noise pattern controlling child biome distribution
+</ParamField>
+
+## Environmental Settings
+
+### Custom Derivatives (Minecraft Biome)
+
+```json
+{
+  "customDerivitives": [
+    {
+      "id": "minecraft:plains",
+      "foliageColor": "#88CC66",
+      "grassColor": "#77BB55"
+    }
+  ]
+}
+```
+
+This maps your Iris biome to a vanilla Minecraft biome with custom colors.
+
+### Effects (Particles, Sounds, Potions)
+
+```json
+{
+  "effects": [
+    {
+      "particleEffect": "CLOUD",
+      "particleChance": 0.01,
+      "particleOffset": 2.5
+    },
+    {
+      "sound": "AMBIENT_CAVE",
+      "soundChance": 0.005,
+      "volume": 0.3
+    }
+  ]
+}
+```
+
+<ParamField path="effects" type="IrisEffect[]">
+  Ambient particle, sound, and potion effects for this biome
+</ParamField>
+
+## Example: Complete Biome
+
+```json biomes/mountain-peaks.json
+{
+  "name": "Mountain Peaks",
+  "rarity": 1,
+  
+  "generators": [
+    {
+      "generator": "mountain-height",
+      "min": 100,
+      "max": 180
+    }
+  ],
+  
+  "layers": [
+    {
+      "palette": [
+        { "block": "snow_block" }
+      ]
+    },
+    {
+      "minHeight": 1,
+      "maxHeight": 2,
+      "palette": [
+        { "block": "stone" }
+      ]
+    },
+    {
+      "minHeight": 50,
+      "maxHeight": 80,
+      "palette": [
+        { "block": "stone", "weight": 8 },
+        { "block": "andesite", "weight": 1 },
+        { "block": "gravel", "weight": 1 }
+      ],
+      "style": {
+        "style": "GLOB",
+        "zoom": 0.12
+      }
+    }
+  ],
+  
+  "decorators": [
+    {
+      "chance": 0.05,
+      "palette": [
+        { "block": "snow" }
+      ]
+    }
+  ],
+  
+  "objects": [
+    {
+      "chance": 0.002,
+      "place": ["ice-spikes"],
+      "mode": "PAINT"
+    }
+  ],
+  
+  "children": [
+    "snow-cap",
+    "rocky-cliff"
+  ],
+  "childShrinkage": 4,
+  
+  "customDerivitives": [
+    {
+      "id": "minecraft:snowy_plains",
+      "temperature": 0.0
+    }
+  ]
+}
+```
+
+## Best Practices
+
+<Tip>
+- Use 2-5 layers for most biomes (surface, subsurface, deep)
+- Add variety with weighted block palettes
+- Limit decorator `chance` to 0.01-0.2 to avoid lag
+- Test object density before finalizing
+</Tip>
+
+<Warning>
+Too many decorators or objects can severely impact generation performance. Start conservative and increase gradually.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Generators" icon="wave-sine" href="/concepts/generators">
+    Learn about terrain height generation
+  </Card>
+  <Card title="Create a Biome" icon="mountain-sun" href="/content/biomes-guide">
+    Step-by-step biome creation guide
+  </Card>
+</CardGroup>

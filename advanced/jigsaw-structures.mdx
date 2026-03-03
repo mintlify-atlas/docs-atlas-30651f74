@@ -1,0 +1,389 @@
+---
+title: Jigsaw Structures
+description: Advanced guide to building procedural structures using Iris's jigsaw system
+---
+
+Jigsaw structures are Iris's most powerful feature for creating complex, procedural structures that grow organically. Unlike static objects, jigsaw structures connect multiple pieces together using a connector-based system.
+
+## Overview
+
+The jigsaw system consists of three main components:
+
+- **Jigsaw Structures**: The top-level definition that specifies starting pieces and configuration
+- **Jigsaw Pools**: Collections of pieces that can be randomly selected
+- **Jigsaw Pieces**: Individual building blocks with connectors that link to other pieces
+
+## Creating a Jigsaw Structure
+
+Jigsaw structures are defined in the `jigsaw-structures/` folder.
+
+### Basic Structure Configuration
+
+```json
+{
+  "pieces": [
+    "my-village/starting-piece"
+  ],
+  "maxDepth": 9,
+  "terminate": true
+}
+```
+
+### Configuration Options
+
+#### Starting Pieces
+
+**`pieces`** (required)
+Array of starting pieces. Iris randomly selects one piece to begin structure generation, then connects additional pieces using the pools defined in connectors.
+
+```json
+"pieces": [
+  "village/town-center",
+  "village/fountain-plaza"
+]
+```
+
+#### Max Depth
+
+**`maxDepth`** (default: `9`)
+The maximum number of pieces that can extend from the center piece. Higher values create larger structures but may impact performance.
+
+```json
+"maxDepth": 12
+```
+
+<Warning>
+Depth affects parallax layer growth which can slow generation. Values above 15 may cause noticeable performance impact.
+</Warning>
+
+#### Termination
+
+**`terminate`** (default: `true`)
+Automatically caps off connector endpoints with terminal pieces (pieces with only one connector).
+
+```json
+"terminate": true,
+"terminatePool": "village/end-pieces"
+```
+
+**`terminatePool`**
+Specify a custom pool for terminating pieces instead of searching all valid pools.
+
+#### Y Position Control
+
+**`overrideYRange`**
+Override the default heightmap placement with a specific Y range.
+
+```json
+"overrideYRange": {
+  "min": 60,
+  "max": 80,
+  "style": {
+    "type": "PERLIN"
+  }
+}
+```
+
+**`lockY`** (default: `-1`)
+Force all pieces to generate at a specific Y coordinate.
+
+```json
+"lockY": 64
+```
+
+#### Rotation
+
+**`disableInitialRotation`** (default: `false`)
+Prevents the starting piece from rotating randomly.
+
+```json
+"disableInitialRotation": true
+```
+
+#### Parallax Optimization
+
+**`useMaxPieceSizeForParallaxRadius`** (default: `false`)
+Uses maximum piece dimensions instead of average for parallax calculations. Enable this if you see structure cut-offs or broken terrain.
+
+```json
+"useMaxPieceSizeForParallaxRadius": true
+```
+
+<Note>
+Keep this disabled unless you experience visual issues. It's more conservative but less performant.
+</Note>
+
+#### Force Placement
+
+**`forcePlace`** (default: `false`)
+Forces the entire structure to place, overriding collision detection.
+
+```json
+"forcePlace": false
+```
+
+#### Structure Key
+
+**`structureKey`**
+Minecraft structure key for treasure map integration.
+
+```json
+"structureKey": "minecraft:village"
+```
+
+### Using Datapack Structures
+
+**`datapackStructures`**
+Use vanilla Minecraft datapack structures instead of Iris pieces. When defined, all other settings are ignored.
+
+```json
+{
+  "datapackStructures": [
+    "minecraft:village/plains/town_centers/plains_meeting_point_1",
+    "minecraft:village/plains/town_centers/plains_meeting_point_2"
+  ]
+}
+```
+
+## Jigsaw Pools
+
+Pools are collections of pieces stored in `jigsaw-pools/`.
+
+```json
+{
+  "pieces": [
+    "village/houses/small-house-1",
+    "village/houses/small-house-2",
+    "village/houses/large-house-1"
+  ]
+}
+```
+
+Connectors reference pools to determine which pieces can attach.
+
+## Jigsaw Pieces
+
+Pieces are the building blocks, stored in `jigsaw-pieces/`.
+
+### Basic Piece
+
+```json
+{
+  "object": "village/path-straight",
+  "connectors": [
+    {
+      "name": "road",
+      "targetName": "road",
+      "position": { "x": 0, "y": 0, "z": 5 },
+      "direction": "NORTH_NEGATIVE_Z",
+      "pools": ["village/paths"]
+    },
+    {
+      "name": "road",
+      "targetName": "road",
+      "position": { "x": 0, "y": 0, "z": -5 },
+      "direction": "SOUTH_POSITIVE_Z",
+      "pools": ["village/paths"]
+    }
+  ]
+}
+```
+
+### Connector Properties
+
+**`name`** (required)
+Identifier for organization. Multiple connectors can share the same name.
+
+**`targetName`** (default: `"*"`)
+Target specific connector names in other pieces. Use `"*"` to match any connector.
+
+```json
+"targetName": "entrance"
+```
+
+**`position`** (required)
+Relative coordinates within the piece where the connector is located.
+
+```json
+"position": { "x": 5, "y": 0, "z": 0 }
+```
+
+**`direction`** (required)
+The direction the connector faces. Pieces attach in this direction.
+
+Options:
+- `UP_POSITIVE_Y`
+- `DOWN_NEGATIVE_Y`
+- `NORTH_NEGATIVE_Z`
+- `SOUTH_POSITIVE_Z`
+- `EAST_POSITIVE_X`
+- `WEST_NEGATIVE_X`
+
+**`pools`** (required)
+Array of pools to pull pieces from for this connector.
+
+```json
+"pools": [
+  "village/decorations",
+  "village/paths"
+]
+```
+
+**`rotateConnector`** (default: `false`)
+Allows the placed piece to rotate on the connector.
+
+```json
+"rotateConnector": true
+```
+
+**`innerConnector`** (default: `false`)
+Allows pieces to collide with the parent piece's bounding box. Useful for decorations like lamp posts on roads.
+
+```json
+"innerConnector": true
+```
+
+**`lockY`** (default: `false`)
+Prevents the connector's Y position from adjusting.
+
+```json
+"lockY": true
+```
+
+### Entity Spawning
+
+**`spawnEntity`**
+Spawn entities at connector positions.
+
+```json
+"spawnEntity": "villager-farmer",
+"entityPosition": { "x": 0, "y": 1, "z": 0 },
+"entityCount": 3,
+"keepEntity": true
+```
+
+**`keepEntity`** (default: `false`)
+Prevents spawned entities from despawning.
+
+### Placement Options
+
+**`placementOptions`**
+Configure object placement behavior. Only define this when needed as it impacts performance.
+
+```json
+"placementOptions": {
+  "mode": "FAST_MAX_HEIGHT"
+}
+```
+
+See IrisObjectPlacement.java:58 for available modes.
+
+## Advanced Examples
+
+### Village with Roads
+
+**Structure:**
+```json
+{
+  "pieces": ["village/plaza"],
+  "maxDepth": 8,
+  "terminate": true,
+  "terminatePool": "village/road-ends"
+}
+```
+
+**Starting Piece (plaza):**
+```json
+{
+  "object": "village/plaza-fountain",
+  "connectors": [
+    {
+      "name": "road",
+      "targetName": "road",
+      "position": { "x": 10, "y": 0, "z": 0 },
+      "direction": "EAST_POSITIVE_X",
+      "pools": ["village/roads"]
+    },
+    {
+      "name": "road",
+      "targetName": "road",
+      "position": { "x": -10, "y": 0, "z": 0 },
+      "direction": "WEST_NEGATIVE_X",
+      "pools": ["village/roads"]
+    }
+  ]
+}
+```
+
+**Road Piece:**
+```json
+{
+  "object": "village/path-5x5",
+  "connectors": [
+    {
+      "name": "road",
+      "targetName": "road",
+      "position": { "x": 5, "y": 0, "z": 0 },
+      "direction": "EAST_POSITIVE_X",
+      "pools": ["village/roads"],
+      "rotateConnector": true
+    },
+    {
+      "name": "building",
+      "targetName": "entrance",
+      "position": { "x": 0, "y": 0, "z": 3 },
+      "direction": "NORTH_NEGATIVE_Z",
+      "pools": ["village/buildings"],
+      "innerConnector": true
+    }
+  ]
+}
+```
+
+### Dungeon System
+
+```json
+{
+  "pieces": ["dungeon/entrance"],
+  "maxDepth": 15,
+  "lockY": 20,
+  "terminate": true,
+  "disableInitialRotation": true
+}
+```
+
+## Performance Tips
+
+1. **Keep maxDepth reasonable**: Values over 12 can significantly slow generation
+2. **Limit piece complexity**: Fewer connectors per piece = faster generation
+3. **Use placement options sparingly**: Only set `placementOptions` when absolutely necessary
+4. **Optimize pool sizes**: Smaller pools (3-5 pieces) perform better than large ones
+5. **Disable parallax optimization**: Keep `useMaxPieceSizeForParallaxRadius` off unless needed
+
+## Troubleshooting
+
+### Structure pieces are cut off
+
+Enable `useMaxPieceSizeForParallaxRadius`:
+```json
+"useMaxPieceSizeForParallaxRadius": true
+```
+
+### Structures won't connect properly
+
+- Verify connector positions match object dimensions
+- Check that connector directions are opposite (NORTH connects to SOUTH)
+- Ensure `targetName` matches between connectors or use `"*"`
+
+### Structures float or sink into terrain
+
+- Use `overrideYRange` for consistent placement
+- Adjust `placementOptions.mode`
+- Consider using `lockY` for underground structures
+
+### Performance issues
+
+- Reduce `maxDepth`
+- Simplify connector networks
+- Remove unnecessary `placementOptions`
+- Use smaller pool sizes

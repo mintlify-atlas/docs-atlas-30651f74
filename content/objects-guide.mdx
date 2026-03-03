@@ -1,0 +1,622 @@
+---
+title: Objects Guide
+description: Place custom structures, trees, and features in your Iris worlds
+---
+
+Objects are 3D structures that Iris places in your world. They can be trees, rocks, buildings, ruins, or any custom structure you create.
+
+## What is an Object?
+
+An Iris Object is a saved structure stored in the `.iob` (Iris Object Binary) format. Objects contain:
+
+- Block data (what blocks and where)
+- Tile entity data (chests, signs, spawners)
+- Rotation and scaling options
+- Placement rules
+
+## Creating Objects
+
+<Steps>
+  <Step title="Build your structure">
+    Build the structure in-game that you want to save as an object.
+  </Step>
+  
+  <Step title="Save the object">
+    Use Iris Studio commands to save your structure:
+    ```
+    /iris studio create <name>
+    /iris studio expand <amount>
+    /iris studio save
+    ```
+  </Step>
+  
+  <Step title="Place in config">
+    Reference your object in biome or region configs:
+    ```json
+    {
+      "objects": [
+        {
+          "place": ["my-tree"],
+          "chance": 0.01,
+          "density": 3
+        }
+      ]
+    }
+    ```
+  </Step>
+</Steps>
+
+## Object Placement Configuration
+
+Objects are placed via `IrisObjectPlacement` configurations in biomes and regions.
+
+### Basic Placement
+
+```json
+{
+  "place": ["oak-tree", "birch-tree"],
+  "chance": 0.02,
+  "density": 3,
+  "mode": "PAINT"
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `place` | String[] | - | List of object file names (required) |
+| `chance` | Double | 0.1 | Probability of placement attempt (0-1) |
+| `density` | Integer | 1 | Attempts per successful chance roll |
+
+### Placement Modes
+
+**Mode determines how Y-coordinate is calculated:**
+
+| Mode | Behavior |
+|------|----------|
+| `PAINT` | Places on surface (follows terrain) |
+| `MAX_HEIGHT` | Places at highest point within object bounds |
+| `FAST_MAX_HEIGHT` | Faster MAX_HEIGHT using sampling |
+| `MIN_HEIGHT` | Places at lowest point within bounds |
+| `FAST_MIN_HEIGHT` | Faster MIN_HEIGHT using sampling |
+| `CENTER_HEIGHT` | Places at center coordinate height |
+| `STILT` | Like MAX_HEIGHT but adds support pillars |
+| `FAST_STILT` | Faster STILT mode |
+| `MIN_STILT` | Like MIN_HEIGHT with stilts |
+| `FAST_MIN_STILT` | Faster MIN_STILT |
+| `CENTER_STILT` | Like CENTER_HEIGHT with stilts |
+
+```json
+{
+  "mode": "STILT",
+  "stiltSettings": {
+    "palette": [{ "block": "oak_log" }],
+    "overStilt": 2,
+    "yRand": 3
+  }
+}
+```
+
+### Rotation
+
+```json
+{
+  "rotation": {
+    "enabled": true,
+    "yAxis": {
+      "enabled": true,
+      "min": 0,
+      "max": 360,
+      "interval": 90
+    },
+    "xAxis": { "enabled": false },
+    "zAxis": { "enabled": false }
+  }
+}
+```
+
+**Rotate towards slope:**
+
+```json
+{
+  "rotateTowardsSlope": true
+}
+```
+
+Object automatically orients downslope.
+
+### Translation (Offset)
+
+```json
+{
+  "translate": {
+    "x": 0,
+    "y": -1,
+    "z": 0,
+    "yRandom": 2
+  }
+}
+```
+
+- `x`, `y`, `z`: Fixed offset in blocks
+- `yRandom`: Random Y offset range
+
+### Scaling
+
+```json
+{
+  "scale": {
+    "x": 1.0,
+    "y": 1.0,
+    "z": 1.0,
+    "multiplier": 1.0
+  }
+}
+```
+
+### Warping
+
+**Add organic distortion:**
+
+```json
+{
+  "warp": {
+    "enabled": true,
+    "strength": 0.5,
+    "zoom": 1.0
+  }
+}
+```
+
+## Advanced Placement
+
+### Smart Bore
+
+**Fills hollow objects to prevent x-ray:**
+
+```json
+{
+  "smartBore": true
+}
+```
+
+Iris fills the interior with air/void air to prevent seeing through walls.
+
+### Boring (Clear Space)
+
+**Clears area before placing:**
+
+```json
+{
+  "bore": true,
+  "boreExtendMinY": 0,
+  "boreExtendMaxY": 5
+}
+```
+
+### Melding
+
+**Only replaces solid blocks:**
+
+```json
+{
+  "meld": true
+}
+```
+
+### Slope Conditions
+
+```json
+{
+  "slopeCondition": {
+    "enabled": true,
+    "min": 0,
+    "max": 3
+  }
+}
+```
+
+Only places on terrain within slope range (0=flat, 10=vertical).
+
+### Height Clamping
+
+```json
+{
+  "clamp": {
+    "enabled": true,
+    "min": 60,
+    "max": 120
+  }
+}
+```
+
+Only places between Y levels.
+
+### Underwater & Water Options
+
+```json
+{
+  "underwater": true,
+  "waterloggable": true,
+  "onwater": false
+}
+```
+
+- `underwater`: Only place below water
+- `waterloggable`: Auto-waterlog waterloggable blocks
+- `onwater`: Place on water surface
+
+### Carving Support
+
+```json
+{
+  "carvingSupport": "SURFACE_ONLY"
+}
+```
+
+Options:
+- `SURFACE_ONLY`: Only surface placement
+- `CARVE_ONLY`: Only in carved areas (caves)
+- `BOTH`: Surface and carved areas
+
+### Snow Coverage
+
+```json
+{
+  "snow": 0.5
+}
+```
+
+Adds snow layers on top (0-1, fraction of max snow height).
+
+### Block Replacement
+
+**Replace blocks in the object:**
+
+```json
+{
+  "edit": [
+    {
+      "find": [{ "block": "oak_log" }],
+      "replace": {
+        "palette": [
+          { "block": "spruce_log", "weight": 1 },
+          { "block": "birch_log", "weight": 1 }
+        ]
+      },
+      "chance": 0.5,
+      "exact": false
+    }
+  ]
+}
+```
+
+- `find`: Blocks to find
+- `replace`: What to replace with
+- `chance`: Probability of replacement
+- `exact`: Match block states exactly
+
+### Markers
+
+**Place additional content at marked locations:**
+
+```json
+{
+  "markers": [
+    {
+      "marker": "spawn-point",
+      "mark": [{ "block": "gold_block" }],
+      "maximumMarkers": 1,
+      "exact": true
+    }
+  ]
+}
+```
+
+Markers enable placing entities, loot, or triggering events at specific blocks.
+
+### Collision Control
+
+**Prevent/allow overlapping objects:**
+
+```json
+{
+  "forbiddenCollisions": ["house", "tower"],
+  "allowedCollisions": ["path", "road"]
+}
+```
+
+### Heightmap Placement
+
+**Place based on image heightmap:**
+
+```json
+{
+  "heightmap": {
+    "image": "mountain.png",
+    "blur": 1.0,
+    "opacity": 1.0
+  }
+}
+```
+
+### Limits
+
+**Control max placements per area:**
+
+```json
+{
+  "limit": {
+    "max": 5,
+    "radius": 128
+  }
+}
+```
+
+### Force Placement
+
+**Ignore placement checks:**
+
+```json
+{
+  "forcePlace": true
+}
+```
+
+Use cautiously - bypasses slope, height, and collision checks.
+
+## Object File Management
+
+### File Locations
+
+Objects are stored in:
+```
+packs/<pack-name>/objects/
+```
+
+### Naming Convention
+
+- Use lowercase with hyphens: `oak-tree.iob`
+- Be descriptive: `small-pine-tree.iob`, `large-boulder.iob`
+- Version if needed: `house-v2.iob`
+
+### Studio Commands
+
+```
+/iris studio create <name>        - Start object creation
+/iris studio expand <amount>      - Expand selection
+/iris studio contract <amount>    - Shrink selection  
+/iris studio save                 - Save object
+/iris studio rotate <degrees>     - Rotate selection
+/iris studio shift <x> <y> <z>   - Move selection
+```
+
+## Example Configurations
+
+### Simple Tree
+
+```json
+{
+  "place": ["oak-tree"],
+  "chance": 0.01,
+  "density": 2,
+  "mode": "PAINT",
+  "rotation": {
+    "enabled": true,
+    "yAxis": {
+      "enabled": true,
+      "min": 0,
+      "max": 360,
+      "interval": 90
+    }
+  }
+}
+```
+
+### Floating Island
+
+```json
+{
+  "place": ["sky-island"],
+  "chance": 0.0001,
+  "density": 1,
+  "mode": "CENTER_HEIGHT",
+  "translate": {
+    "y": 80
+  },
+  "smartBore": true,
+  "forcePlace": true
+}
+```
+
+### House with Foundation
+
+```json
+{
+  "place": ["village-house"],
+  "chance": 0.00001,
+  "density": 1,
+  "mode": "STILT",
+  "stiltSettings": {
+    "palette": [
+      { "block": "stone_bricks" },
+      { "block": "cobblestone" }
+    ],
+    "overStilt": 1
+  },
+  "rotation": {
+    "enabled": true,
+    "yAxis": {
+      "enabled": true,
+      "interval": 90
+    }
+  },
+  "clamp": {
+    "enabled": true,
+    "min": 60,
+    "max": 100
+  }
+}
+```
+
+### Boulder Field
+
+```json
+{
+  "place": ["boulder-1", "boulder-2", "boulder-3"],
+  "chance": 0.005,
+  "density": 5,
+  "mode": "PAINT",
+  "rotation": {
+    "enabled": true,
+    "yAxis": { "enabled": true, "interval": 1 },
+    "xAxis": { "enabled": true, "min": -15, "max": 15 },
+    "zAxis": { "enabled": true, "min": -15, "max": 15 }
+  },
+  "scale": {
+    "multiplier": 0.5,
+    "x": 1.2,
+    "y": 0.8
+  },
+  "slopeCondition": {
+    "enabled": true,
+    "min": 0,
+    "max": 5
+  }
+}
+```
+
+### Underwater Ruin
+
+```json
+{
+  "place": ["underwater-temple"],
+  "chance": 0.000005,
+  "density": 1,
+  "mode": "PAINT",
+  "underwater": true,
+  "waterloggable": true,
+  "edit": [
+    {
+      "find": [{ "block": "stone_bricks" }],
+      "replace": {
+        "palette": [
+          { "block": "mossy_stone_bricks", "weight": 3 },
+          { "block": "cracked_stone_bricks", "weight": 2 },
+          { "block": "stone_bricks", "weight": 1 }
+        ]
+      },
+      "chance": 0.6
+    }
+  ]
+}
+```
+
+### Cliff-Side Structure
+
+```json
+{
+  "place": ["cliff-dwelling"],
+  "chance": 0.00001,
+  "density": 1,
+  "mode": "PAINT",
+  "rotateTowardsSlope": true,
+  "slopeCondition": {
+    "enabled": true,
+    "min": 6,
+    "max": 10
+  },
+  "bore": true,
+  "boreExtendMinY": 0,
+  "boreExtendMaxY": 10
+}
+```
+
+### Rare Dungeon
+
+```json
+{
+  "place": ["dungeon-entrance"],
+  "chance": 0.0000001,
+  "density": 1,
+  "mode": "PAINT",
+  "bore": true,
+  "markers": [
+    {
+      "marker": "loot-chest",
+      "mark": [{ "block": "gold_block" }],
+      "maximumMarkers": 3
+    },
+    {
+      "marker": "mob-spawner",
+      "mark": [{ "block": "diamond_block" }],
+      "maximumMarkers": 2
+    }
+  ],
+  "forbiddenCollisions": ["dungeon-entrance", "village-house"]
+}
+```
+
+## Tips & Best Practices
+
+### Performance
+
+- Use `FAST_` modes for large objects
+- Limit very large objects to low chance/density
+- Use `limit` to prevent clustering
+- Prefer smaller, varied objects over few massive ones
+
+### Aesthetics
+
+- Add rotation for natural variety
+- Use multiple similar objects in `place` array
+- Apply `edit` rules for weathering/variation
+- Match object style to biome theme
+
+### Placement
+
+- Test with `/iris object <object-name>` command
+- Use `focus` in dimension to isolate testing
+- Check slopes with debug tools
+- Verify underwater/underground placement
+
+### Organization
+
+- Group related objects in subfolders
+- Use consistent naming schemes
+- Document complex placement configs
+- Version control your objects
+
+<Accordion title="FAQ">
+  <AccordionGroup>
+    <Accordion title="Why isn't my object placing?">
+      Check:
+      - `chance` is high enough (try 1.0 for testing)
+      - `density` is at least 1
+      - Object file exists in objects folder
+      - Placement mode is appropriate for terrain
+      - No conflicting `clamp`, `slope`, or collision rules
+    </Accordion>
+    
+    <Accordion title="What's the difference between bore and smartBore?">
+      `bore` clears the entire object volume before placing. `smartBore` fills hollow interiors with void air to prevent x-ray vision.
+    </Accordion>
+    
+    <Accordion title="Can objects span multiple chunks?">
+      Yes! Large objects can be any size. However, extremely large objects may impact performance.
+    </Accordion>
+    
+    <Accordion title="How do I make trees that vary in size?">
+      Use `scale` with random multipliers, or create multiple tree objects at different scales and place them together.
+    </Accordion>
+    
+    <Accordion title="What's the best mode for houses?">
+      Use `STILT` modes to ensure buildings have proper foundations and don't float or sink into terrain.
+    </Accordion>
+  </AccordionGroup>
+</Accordion>
+
+## Next Steps
+
+- Learn about [Decorators](/decorators) for small surface details
+- Configure [Loot Tables](/loot-tables) for treasure chests
+- Set up [Entity Spawners](/entity-spawners) at markers

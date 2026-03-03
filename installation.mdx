@@ -1,0 +1,306 @@
+---
+title: "Installation"
+description: "Install Iris on your Bukkit, Spigot, or Paper server"
+---
+
+## Prerequisites
+
+Before installing Iris, ensure your server meets these requirements:
+
+<Warning>
+  **Java 21 Required**: Iris requires Java 21 or newer to run. Using an older version of Java will prevent the plugin from loading.
+</Warning>
+
+<Steps>
+  <Step title="Verify Java Version">
+    Iris requires **Java 21 or higher**. Check your Java version:
+    
+    ```bash
+    java -version
+    ```
+    
+    You should see output showing Java 21 or higher:
+    ```
+    openjdk version "21.0.1" 2023-10-17
+    OpenJDK Runtime Environment (build 21.0.1+12-29)
+    OpenJDK 64-Bit Server VM (build 21.0.1+12-29, mixed mode, sharing)
+    ```
+    
+    <Accordion title="Install Java 21">
+      If you need to install Java 21:
+      
+      **Download Java 21**:
+      - [Oracle JDK 21](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
+      - [OpenJDK 21](https://adoptium.net/temurin/releases/?version=21)
+      
+      **Set JAVA_HOME** (if needed):
+      
+      <CodeGroup>
+      ```bash Windows
+      # Press Win + R, type: SystemPropertiesAdvanced
+      # Click "Environment Variables"
+      # Under System Variables, click "New"
+      # Variable Name: JAVA_HOME
+      # Variable Value: C:\Program Files\Java\jdk-21.0.1
+      ```
+      
+      ```bash macOS/Linux
+      # Add to ~/.bashrc or ~/.zshrc
+      export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+      
+      # Reload shell configuration
+      source ~/.bashrc  # or source ~/.zshrc
+      ```
+      </CodeGroup>
+    </Accordion>
+  </Step>
+  
+  <Step title="Verify Server Platform">
+    Iris supports these server platforms:
+    
+    - **Paper** (recommended for best performance)
+    - **Spigot**
+    - **Bukkit** (derivatives)
+    
+    **Supported Minecraft Versions**: 1.20.1 - 1.21.11
+    
+    <Tip>
+      Paper is recommended for optimal performance with Iris. Download from [PaperMC.io](https://papermc.io/downloads)
+    </Tip>
+  </Step>
+</Steps>
+
+## Installation Methods
+
+### Method 1: Download from SpigotMC (Recommended)
+
+<Steps>
+  <Step title="Purchase & Download">
+    Support the developers by purchasing Iris from SpigotMC:
+    
+    1. Visit the Iris resource page on SpigotMC
+    2. Purchase and download the latest version
+    3. You'll receive `Iris-[version].jar`
+  </Step>
+  
+  <Step title="Install the Plugin">
+    Copy the JAR file to your server's plugins folder:
+    
+    ```bash
+    # Navigate to your server directory
+    cd /path/to/your/server
+    
+    # Copy Iris to plugins folder
+    cp ~/Downloads/Iris-*.jar plugins/
+    ```
+  </Step>
+  
+  <Step title="Start Your Server">
+    Start or restart your server:
+    
+    ```bash
+    java -jar paper.jar
+    ```
+    
+    Look for Iris startup messages in the console:
+    ```
+    [Iris] Iris v3.9.1-1.20.1-1.21.11 by Volmit Software
+    [Iris] Server type & version: Paper v1.21.11
+    [Iris] Custom Biomes: ...
+    ```
+  </Step>
+</Steps>
+
+### Method 2: Build from Source
+
+<Accordion title="Advanced: Build from GitHub">
+  Building from source requires Java 21 and Git:
+  
+  <Steps>
+    <Step title="Clone the Repository">
+      ```bash
+      git clone https://github.com/VolmitSoftware/Iris.git
+      cd Iris
+      ```
+    </Step>
+    
+    <Step title="Build with Gradle">
+      ```bash
+      # Unix/macOS
+      ./gradlew iris
+      
+      # Windows
+      gradlew.bat iris
+      ```
+      
+      <Info>
+        The build process uses Java 21 toolchain as configured in `build.gradle.kts:191-195`
+      </Info>
+    </Step>
+    
+    <Step title="Locate the JAR">
+      After building, find the JAR at:
+      ```
+      build/Iris-[version].jar
+      ```
+      
+      Copy it to your server's `plugins/` folder.
+    </Step>
+  </Steps>
+</Accordion>
+
+## First Launch
+
+After installing Iris, the first server start will:
+
+<Steps>
+  <Step title="Initialize Plugin">
+    Iris creates its data folder structure:
+    ```
+    plugins/Iris/
+    ├── settings.json       # Configuration file
+    ├── packs/              # Dimension packs folder
+    ├── cache/              # Generation cache
+    └── compat.json         # Compatibility settings
+    ```
+  </Step>
+  
+  <Step title="Auto-Configuration">
+    Iris automatically configures server settings if enabled:
+    
+    <CodeGroup>
+    ```yaml spigot.yml
+    # Iris adjusts timeout settings in spigot.yml
+    settings:
+      timeout-time: 120  # Increased for world generation
+    ```
+    
+    ```yaml paper.yml (Paper servers)
+    # Iris configures Paper watchdog delay
+    watchdog:
+      early-warning-delay: 120000
+    ```
+    </CodeGroup>
+    
+    <Note>
+      Auto-configuration can be disabled in `settings.json` under `autoConfiguration`
+    </Note>
+  </Step>
+  
+  <Step title="Download Default Dimension Pack">
+    On first world creation, Iris downloads the "overworld" dimension pack:
+    
+    ```bash
+    [Iris] Downloading pack: overworld
+    [Iris] Installing into packs/overworld/
+    ```
+  </Step>
+</Steps>
+
+## Verify Installation
+
+Confirm Iris is running correctly:
+
+<CodeGroup>
+```bash In-Game
+# Run this command as operator
+/iris version
+
+# Expected output:
+# Iris v3.9.1-1.20.1-1.21.11 by Volmit Software
+```
+
+```bash Console
+# Check loaded worlds
+/iris worlds
+
+# Should show:
+# Iris Worlds: 
+# Bukkit Worlds:
+# - world
+# - world_nether  
+# - world_the_end
+```
+</CodeGroup>
+
+<Tip>
+  Use `/iris help` to see all available commands
+</Tip>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Plugin won't load - Java version error">
+    **Error**: `You must run gradle on Java 21 or newer`
+    
+    **Solution**: 
+    1. Install Java 21 or higher
+    2. Set `JAVA_HOME` environment variable
+    3. Restart your server with Java 21
+    
+    Verify with: `java -version`
+  </Accordion>
+  
+  <Accordion title="Iris commands not working">
+    **Symptoms**: Commands like `/iris` return "Unknown command"
+    
+    **Solutions**:
+    1. Ensure Iris loaded successfully (check startup logs)
+    2. Verify you have operator permissions
+    3. Check for plugin conflicts in `plugins/` folder
+    4. Look for errors in `logs/latest.log`
+  </Accordion>
+  
+  <Accordion title="World generation is slow">
+    **Symptoms**: Chunks take a long time to generate
+    
+    **Solutions**:
+    1. Allocate more RAM to your server (recommended: 4GB minimum)
+    2. Adjust thread settings in `settings.json`:
+       ```json
+       "concurrency": {
+         "parallelism": -1,
+         "worldGenParallelism": -1
+       }
+       ```
+    3. Enable pregeneration for your world (see quickstart)
+    
+    See [Configuration](/configuration) for performance tuning.
+  </Accordion>
+  
+  <Accordion title="Custom biomes not loading">
+    **Error**: `Custom Biomes: 0` in startup logs
+    
+    **Causes**:
+    - NMS (Native Minecraft Server) bindings failed
+    - Server version not supported
+    - Dimension pack missing or corrupted
+    
+    **Solution**: 
+    1. Verify Minecraft version is 1.20.1-1.21.11
+    2. Re-download dimension pack: `/iris download overworld`
+    3. Check `settings.json` - ensure `disableNMS: false`
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that Iris is installed:
+
+<CardGroup cols={2}>
+  <Card title="Create Your First World" icon="globe" href="/quickstart">
+    Follow the quickstart guide to create an Iris world
+  </Card>
+  
+  <Card title="Configure Settings" icon="sliders" href="/configuration">
+    Optimize performance and customize behavior
+  </Card>
+  
+  <Card title="Download Dimension Packs" icon="download">
+    Browse available packs at [IrisDimensions](https://github.com/IrisDimensions)
+  </Card>
+  
+  <Card title="Studio Mode" icon="code">
+    Learn to create custom dimensions with Studio
+  </Card>
+</CardGroup>

@@ -1,0 +1,133 @@
+---
+title: Integration Guide
+description: How to add Iris as a dependency to your plugin
+---
+
+This guide shows you how to integrate Iris into your Bukkit/Spigot/Paper plugin.
+
+## Prerequisites
+
+- Java 21 or higher
+- A Bukkit/Spigot/Paper plugin project
+- Gradle or Maven build system
+
+## Adding the Dependency
+
+### Gradle
+
+Add the following to your `build.gradle`:
+
+```gradle
+repositories {
+    maven {
+        url = uri("https://repo.volmit.com/releases/")
+    }
+}
+
+dependencies {
+    compileOnly "com.volmit.iris:Iris:VERSION"
+}
+```
+
+Replace `VERSION` with the latest Iris version (e.g., `2.4.0`).
+
+### Maven
+
+Add the following to your `pom.xml`:
+
+```xml
+<repositories>
+    <repository>
+        <id>volmit</id>
+        <url>https://repo.volmit.com/releases/</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.volmit.iris</groupId>
+        <artifactId>Iris</artifactId>
+        <version>VERSION</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+```
+
+## Plugin Configuration
+
+Add Iris as a dependency in your `plugin.yml`:
+
+```yaml
+name: YourPlugin
+version: 1.0.0
+main: com.yourname.yourplugin.YourPlugin
+depend: [Iris]
+```
+
+If Iris is optional for your plugin:
+
+```yaml
+softdepend: [Iris]
+```
+
+## Basic Usage Example
+
+Here's a simple example of checking if a world uses Iris:
+
+```java
+package com.yourname.yourplugin;
+
+import com.volmit.iris.core.tools.IrisToolbelt;
+import org.bukkit.World;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class YourPlugin extends JavaPlugin {
+    
+    @Override
+    public void onEnable() {
+        // Check all loaded worlds
+        for (World world : getServer().getWorlds()) {
+            if (IrisToolbelt.isIrisWorld(world)) {
+                getLogger().info(world.getName() + " is using Iris!");
+            }
+        }
+    }
+}
+```
+
+## Accessing the Iris Instance
+
+You can access the main Iris plugin instance:
+
+```java
+import com.volmit.iris.Iris;
+import org.bukkit.Bukkit;
+
+public void checkIris() {
+    Iris irisPlugin = (Iris) Bukkit.getPluginManager().getPlugin("Iris");
+    if (irisPlugin != null && irisPlugin.isEnabled()) {
+        // Iris is loaded and enabled
+    }
+}
+```
+
+## Important Considerations
+
+<Warning>
+  Use `compileOnly` (Gradle) or `provided` (Maven) scope to avoid bundling Iris with your plugin. Iris must be installed separately on the server.
+</Warning>
+
+<Info>
+  Always check if a world is an Iris world before accessing Iris-specific features using `IrisToolbelt.isIrisWorld(world)`.
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="IrisToolbelt Reference" icon="wrench" href="/api/toolbelt">
+    Learn about all available API methods
+  </Card>
+  <Card title="API Overview" icon="book" href="/api/overview">
+    Understand the API structure
+  </Card>
+</CardGroup>

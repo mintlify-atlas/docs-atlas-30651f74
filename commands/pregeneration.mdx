@@ -1,0 +1,266 @@
+---
+title: Pregeneration Commands
+description: Commands for pregenerating Iris worlds
+---
+
+Iris provides three different pregeneration systems, each optimized for different use cases. Choose the system that best fits your needs.
+
+## Standard Pregeneration
+
+The standard `/pregen` command provides GUI-based pregeneration with progress tracking.
+
+### Start Pregeneration
+
+```bash
+/pregen start <radius> [world] [center] [gui]
+```
+
+**Parameters:**
+- `radius` - Radius in blocks (minimum: 1024)
+- `world` - World to pregenerate (defaults to current world)
+- `center` - Center point (default: `0,0`, use `me` for your location)
+- `gui` - Show progress GUI (default: `true`)
+
+**Aliases:** `pregenerate`
+
+**Example:**
+```bash
+/pregen start 5000
+/pregen start 10000 MyWorld center=me
+/pregen start 3000 TestWorld center=0,0 gui=false
+```
+
+### Stop Pregeneration
+
+Stop the active pregeneration task.
+
+```bash
+/pregen stop
+```
+
+**Aliases:** `x`
+
+### Pause/Resume Pregeneration
+
+Toggle pause state of active pregeneration.
+
+```bash
+/pregen pause
+```
+
+**Aliases:** `t`, `resume`, `unpause`
+
+## Lazy Pregeneration
+
+Lazy pregen runs in the background with configurable rate limiting, perfect for pregeneration during server runtime.
+
+### Start Lazy Pregen
+
+```bash
+/lazypregen start <radius> [world] [center] [maxcpm] [silent]
+```
+
+**Parameters:**
+- `radius` - Radius in blocks to pregenerate
+- `world` - World to pregenerate (defaults to current)
+- `center` - Center location (default: `0,0`)
+- `maxcpm` - Maximum chunks per minute (default: `999999999`)
+- `silent` - Disable status messages (default: `false`)
+
+**Aliases:** `lazy`
+
+**Example:**
+```bash
+/lazypregen start 10000
+/lazypregen start 5000 MyWorld maxcpm=1000
+/lazypregen start 3000 TestWorld center=me maxcpm=500 silent=true
+```
+
+<Note>
+Lazy pregen is designed to run continuously in the background. The `maxcpm` parameter prevents server lag by limiting generation speed.
+</Note>
+
+### Stop Lazy Pregen
+
+Stop lazy pregeneration for a world.
+
+```bash
+/lazypregen stop <world>
+```
+
+**Aliases:** `x`
+
+**Example:**
+```bash
+/lazypregen stop MyWorld
+```
+
+### Pause/Resume Lazy Pregen
+
+Toggle pause state of lazy pregeneration.
+
+```bash
+/lazypregen pause <world>
+```
+
+**Aliases:** `t`, `resume`, `unpause`
+
+**Example:**
+```bash
+/lazypregen pause MyWorld
+```
+
+## Turbo Pregeneration
+
+Turbo pregen is optimized for maximum speed, ideal for pregenerating worlds before server launch.
+
+<Warning>
+Turbo pregen uses maximum system resources and should only be used when the server is not accepting players.
+</Warning>
+
+### Start Turbo Pregen
+
+```bash
+/turbopregen start <radius> [world] [center]
+```
+
+**Parameters:**
+- `radius` - Radius in blocks to pregenerate
+- `world` - World to pregenerate (defaults to current)
+- `center` - Center location (default: `0,0`)
+
+**Aliases:** `turbo`
+
+**Example:**
+```bash
+/turbopregen start 20000
+/turbopregen start 15000 MyWorld center=0,0
+```
+
+### Stop Turbo Pregen
+
+Stop turbo pregeneration for a world.
+
+```bash
+/turbopregen stop <world>
+```
+
+**Aliases:** `x`
+
+**Example:**
+```bash
+/turbopregen stop MyWorld
+```
+
+### Pause/Resume Turbo Pregen
+
+Toggle pause state of turbo pregeneration.
+
+```bash
+/turbopregen pause <world>
+```
+
+**Aliases:** `t`, `resume`, `unpause`
+
+**Example:**
+```bash
+/turbopregen pause MyWorld
+```
+
+## Choosing the Right Method
+
+### Standard Pregen (`/pregen`)
+**Best for:**
+- Visual progress tracking
+- Moderate-sized pregeneration
+- Interactive monitoring
+
+**Advantages:**
+- GUI with detailed progress
+- Balanced performance
+- Easy to monitor
+
+### Lazy Pregen (`/lazypregen`)
+**Best for:**
+- Background pregeneration during gameplay
+- Gradual world expansion
+- Rate-limited generation
+
+**Advantages:**
+- Runs alongside players
+- Configurable speed limits
+- Persistent across restarts
+- Minimal lag impact
+
+### Turbo Pregen (`/turbopregen`)
+**Best for:**
+- Pre-launch world preparation
+- Maximum speed generation
+- Server downtime windows
+
+**Advantages:**
+- Fastest generation speed
+- Maximum resource utilization
+- Best for large areas
+
+**Disadvantages:**
+- High system resource usage
+- Not suitable during gameplay
+
+## Best Practices
+
+### Before Starting
+1. **Backup your world** - Always create backups before pregeneration
+2. **Check disk space** - Ensure sufficient storage for the generated chunks
+3. **Test first** - Run a small radius test before large-scale pregeneration
+
+### During Pregeneration
+1. **Monitor performance** - Watch server TPS and resource usage
+2. **Adjust rates** - For lazy pregen, tune `maxcpm` based on server performance
+3. **Plan restarts** - Standard and turbo pregen resume automatically, lazy pregen saves state
+
+### Estimating Size
+
+A rough estimate for world size:
+- **Radius 1000 blocks**: ~10-50 MB
+- **Radius 5000 blocks**: ~100-500 MB  
+- **Radius 10000 blocks**: ~500 MB - 2 GB
+- **Radius 20000 blocks**: ~2-8 GB
+
+<Note>
+Actual sizes vary greatly depending on dimension complexity, structures, and terrain features.
+</Note>
+
+## Monitoring Progress
+
+### GUI Progress (Standard Pregen)
+The GUI shows:
+- Percentage complete
+- Chunks generated
+- Estimated time remaining
+- Current generation speed
+
+### Console Messages (All Methods)
+All methods log progress to console:
+```
+[Iris] Pregeneration 45% complete (9000/20000 chunks)
+[Iris] Current speed: 150 chunks/minute
+```
+
+### Files Created
+- **Lazy**: `lazygen.json` in world folder
+- **Turbo**: `turbogen.json` in world folder
+
+## Permission Nodes
+
+```yaml
+iris.command.pregen.start
+iris.command.pregen.stop
+iris.command.pregen.pause
+iris.command.lazypregen.start
+iris.command.lazypregen.stop  
+iris.command.lazypregen.pause
+iris.command.turbopregen.start
+iris.command.turbopregen.stop
+iris.command.turbopregen.pause
+```

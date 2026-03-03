@@ -1,0 +1,284 @@
+---
+title: Object Placement
+description: Configuration reference for IrisObjectPlacement - controls how and where objects (structures/schematics) are placed
+---
+
+Represents an Iris object placer. It places objects (schematics/structures) in the world with configurable rotation, placement modes, editing, and conditions.
+
+## Core Properties
+
+<ParamField path="place" type="array<string>" required>
+  List of objects to place
+  
+  **Constraints:** Minimum 1 item
+</ParamField>
+
+<ParamField path="chance" type="number" default="1">
+  The chance for this to place in a chunk. If you need multiple per chunk, set this to 1 and use density.
+  
+  **Constraints:** 0-1
+</ParamField>
+
+<ParamField path="density" type="integer" default="1">
+  If the chance check passes, place this many in a single chunk
+  
+  **Constraints:** Minimum 1
+</ParamField>
+
+<ParamField path="densityStyle" type="IrisStyledRange">
+  If the chance check passes, and you specify this, it picks a number in the range based on noise, and 'density' is ignored.
+</ParamField>
+
+## Placement Mode
+
+<ParamField path="mode" type="ObjectPlaceMode" default="CENTER_HEIGHT">
+  The placement mode. Options include:
+  - `CENTER_HEIGHT`: Place based on center height
+  - `CENTER_HEIGHT_RIGID`: Rigid center height placement
+  - `FAST_MAX_HEIGHT`: Fast max height placement
+  - `PAINT`: Paint mode for surface placement
+</ParamField>
+
+<ParamField path="underwater" type="boolean" default="false">
+  If set to true, objects will place on the terrain height, ignoring the water surface.
+</ParamField>
+
+<ParamField path="onwater" type="boolean" default="false">
+  If set to true, objects will place on the fluid height level. Such as boats.
+</ParamField>
+
+<ParamField path="fromBottom" type="boolean" default="false">
+  If set to true, this object will get placed from the bottom of the world up
+</ParamField>
+
+<ParamField path="bottom" type="boolean" default="false">
+  If set to true, this object will place from the ground up instead of height checks when not y locked to the surface. This is not compatible with X and Z axis rotations (it may look off)
+</ParamField>
+
+<ParamField path="carvingSupport" type="CarvingMode" default="SURFACE_ONLY">
+  If set to true, objects will place in carvings (such as underground) or under an overhang.
+  
+  Options: `SURFACE_ONLY`, `CARVING_ONLY`, `BOTH`
+</ParamField>
+
+<ParamField path="heightmap" type="IrisNoiseGenerator">
+  If this is defined, this object won't place on the terrain heightmap, but instead on this virtual heightmap
+</ParamField>
+
+## Rotation & Translation
+
+<ParamField path="rotation" type="IrisObjectRotation" default="{}">
+  Rotate this objects placement
+</ParamField>
+
+<ParamField path="rotateTowardsSlope" type="boolean" default="false">
+  Set to true to add the rotation of the direction of the slope of the terrain (wherever the slope is going down) to the y-axis rotation of the object. Rounded to 90 degrees. Adds the *min* rotation of the y axis as well (to still allow you to rotate objects nicely). Discards *max* and *interval* on *yaxis*
+</ParamField>
+
+<ParamField path="translate" type="IrisObjectTranslate" default="{}">
+  Translate this object's placement
+</ParamField>
+
+<ParamField path="translateCenter" type="boolean" default="false">
+  If the place mode is set to CENTER_HEIGHT_RIGID and you have an X/Z translation, Turning on translate center will also translate the center height check.
+</ParamField>
+
+<ParamField path="scale" type="IrisObjectScale" default="{}">
+  Scale Objects
+</ParamField>
+
+## Placement Conditions
+
+<ParamField path="clamp" type="IrisObjectLimit" default="{}">
+  Limit the max height or min height of placement.
+</ParamField>
+
+<ParamField path="slopeCondition" type="IrisSlopeClip" default="{}">
+  The slope at which this object can be placed. Range from 0 to 10 by default. Calculated from a 3-block radius from the center of the object placement.
+</ParamField>
+
+## Terrain Modification
+
+<ParamField path="bore" type="boolean" default="false">
+  If set to true, air will be placed before the schematic places.
+</ParamField>
+
+<ParamField path="boreExtendMaxY" type="integer" default="0">
+  When bore is enabled, expand max-y of the cuboid it removes
+  
+  **Constraints:** 0-64
+</ParamField>
+
+<ParamField path="boreExtendMinY" type="integer" default="0">
+  When bore is enabled, lower min-y of the cuboid it removes
+  
+  **Constraints:** -1 to 64
+</ParamField>
+
+<ParamField path="smartBore" type="boolean" default="false">
+  If set to true, Iris will try to fill the insides of 'rooms' and 'pockets' where air should fit based off of raytrace checks. This prevents a village house placing in an area where a tree already exists, and instead replaces the parts of the tree where the interior of the structure is. This operation does not affect warmed-up generation speed however it does slow down loading objects.
+</ParamField>
+
+<ParamField path="meld" type="boolean" default="false">
+  If set to true, this object will only place parts of itself where blocks already exist. Warning: Melding is very performance intensive!
+</ParamField>
+
+<ParamField path="waterloggable" type="boolean" default="false">
+  If set to true, Blocks placed underwater that could be waterlogged are waterlogged.
+</ParamField>
+
+## Warping & Effects
+
+<ParamField path="warp" type="IrisGeneratorStyle" default="FLAT">
+  Use a generator to warp the field of coordinates. Using simplex for example would make a square placement warp like a flag
+</ParamField>
+
+<ParamField path="snow" type="number" default="0">
+  The maximum layer level of a snow filter overtop of this placement. Set to 0 to disable. Max of 1.
+  
+  **Constraints:** 0-1
+</ParamField>
+
+## Editing & Replacement
+
+<ParamField path="edit" type="array<IrisObjectReplace>" default="[]">
+  Find and replace blocks
+</ParamField>
+
+<ParamField path="markers" type="array<IrisObjectMarker>" default="[]">
+  Add markers to blocks in this object
+</ParamField>
+
+## Stilting
+
+<ParamField path="stiltSettings" type="IrisStiltSettings">
+  When stilting is enabled, this object will define various properties related to it.
+</ParamField>
+
+## Loot Tables
+
+<ParamField path="loot" type="array<IrisObjectLoot>" default="[]">
+  The loot tables to apply to these objects
+</ParamField>
+
+<ParamField path="vanillaLoot" type="array<IrisObjectVanillaLoot>" default="[]">
+  The vanilla loot tables to apply to these objects
+</ParamField>
+
+<ParamField path="overrideGlobalLoot" type="boolean" default="false">
+  Whether the given loot tables override any and all other loot tables available in the dimension, region or biome.
+</ParamField>
+
+## Trees
+
+<ParamField path="trees" type="array<IrisTree>" default="[]">
+  This object / these objects override the following trees when they grow...
+</ParamField>
+
+## Collision Control
+
+<ParamField path="allowedCollisions" type="array<string>" default="[]">
+  List of objects this object is allowed to collide with
+</ParamField>
+
+<ParamField path="forbiddenCollisions" type="array<string>" default="[]">
+  List of objects this object is forbidden to collide with
+</ParamField>
+
+<ParamField path="forcePlace" type="boolean" default="false">
+  Ignore any placement restrictions for this object
+</ParamField>
+
+## Misc
+
+<ParamField path="isDolphinTarget" type="boolean" default="false">
+  Whether or not this object can be targeted by a dolphin.
+</ParamField>
+
+## JSON Example
+
+```json
+{
+  "place": [
+    "village/house1",
+    "village/house2"
+  ],
+  "chance": 0.05,
+  "density": 1,
+  "mode": "CENTER_HEIGHT",
+  "rotation": {
+    "yAxis": {
+      "min": 0,
+      "max": 270,
+      "interval": 90,
+      "enabled": true
+    },
+    "xAxis": {
+      "enabled": false
+    },
+    "zAxis": {
+      "enabled": false
+    }
+  },
+  "translate": {
+    "x": 0,
+    "y": -1,
+    "z": 0
+  },
+  "clamp": {
+    "minimumHeight": 62,
+    "maximumHeight": 128
+  },
+  "slopeCondition": {
+    "minimumSlope": 0,
+    "maximumSlope": 2
+  },
+  "bore": true,
+  "smartBore": true,
+  "waterloggable": true,
+  "loot": [
+    {
+      "name": "village/house-chest",
+      "weight": 1,
+      "filter": ["chest"]
+    }
+  ]
+}
+```
+
+## Usage Notes
+
+### Placement Density
+
+For sparse placement (like villages), use low `chance` values:
+```json
+{"chance": 0.01, "density": 1}
+```
+
+For dense placement (like flowers), use high `chance` with higher `density`:
+```json
+{"chance": 1.0, "density": 5}
+```
+
+### Smart Bore
+
+Use `smartBore` for structures that need clean interiors:
+```json
+{
+  "bore": true,
+  "smartBore": true,
+  "boreExtendMinY": 1
+}
+```
+
+### Slope-Based Placement
+
+Place objects only on flat terrain:
+```json
+{
+  "slopeCondition": {
+    "minimumSlope": 0,
+    "maximumSlope": 1
+  }
+}
+```

@@ -1,0 +1,456 @@
+---
+title: Custom Effects
+description: Add particles, sounds, potion effects, and commands to biomes and regions
+---
+
+Iris effects allow you to create immersive environmental features by applying particles, sounds, potion effects, and custom commands to players in specific areas.
+
+## Overview
+
+Effects are typically defined within biome configurations and trigger based on player location. Each effect runs on an interval-based system with configurable chances.
+
+## Basic Effect Configuration
+
+```json
+{
+  "interval": 150,
+  "chance": 50,
+  "particleEffect": "ENCHANTED_HIT",
+  "particleCount": 3,
+  "particleDistance": 20,
+  "sound": "BLOCK_AMETHYST_BLOCK_CHIME",
+  "volume": 1.5
+}
+```
+
+## Core Properties
+
+### Interval & Chance
+
+**`interval`** (required, min: `0`)
+Effect check interval in milliseconds.
+
+```json
+"interval": 200
+```
+
+Effects check if they should trigger every `interval` milliseconds.
+
+**`chance`** (required, min: `1`)
+Probability is 1 in CHANCE per interval.
+
+```json
+"chance": 30
+```
+
+With `chance: 30`, there's a 1/30 probability the effect triggers each interval.
+
+<Note>
+Higher chance values = lower probability. `chance: 100` means 1% chance per interval, while `chance: 10` means 10% chance.
+</Note>
+
+## Particle Effects
+
+### Basic Particles
+
+**`particleEffect`**
+The Bukkit particle type to spawn.
+
+```json
+"particleEffect": "SOUL_FIRE_FLAME"
+```
+
+Common particle types:
+- `ENCHANTED_HIT`
+- `FLAME`
+- `SOUL_FIRE_FLAME`
+- `DRIPPING_WATER`
+- `FALLING_DUST`
+- `ENCHANT`
+- `PORTAL`
+- `END_ROD`
+- `SCULK_SOUL`
+
+See Bukkit's Particle enum for all options.
+
+### Particle Count
+
+**`particleCount`** (default: `0`, range: `0-512`)
+Number of particles to spawn per trigger.
+
+```json
+"particleCount": 5
+```
+
+<Note>
+When `particleCount` is 0, the alt X/Y/Z values represent motion instead of offset.
+</Note>
+
+### Particle Positioning
+
+**`particleDistance`** (default: `20`, range: `0-64`)
+Maximum distance in front of the player where particles can spawn.
+
+```json
+"particleDistance": 15
+```
+
+**`particleDistanceWidth`** (default: `24`, range: `0-128`)
+Radius left/right of player's view direction for particle placement.
+
+```json
+"particleDistanceWidth": 30
+```
+
+**`particleAway`** (default: `5`, range: `0-16`)
+Minimum distance from player before particles can spawn.
+
+```json
+"particleAway": 8
+```
+
+**`particleOffset`** (default: `0`, range: `-32` to `32`)
+Vertical offset from the surface height.
+
+```json
+"particleOffset": 2
+```
+
+Negative values place particles below the surface.
+
+### Particle Motion/Offset
+
+When `particleCount > 0`, these values act as offset. When `particleCount = 0`, they represent motion.
+
+**`particleAltX`** (default: `0`, range: `-8` to `8`)
+
+```json
+"particleAltX": 0.5
+```
+
+**`particleAltY`** (default: `0`, range: `-8` to `8`)
+
+```json
+"particleAltY": 1.0
+```
+
+**`particleAltZ`** (default: `0`, range: `-8` to `8`)
+
+```json
+"particleAltZ": 0.5
+```
+
+### Randomization
+
+**`randomAltX`** (default: `true`)
+Randomize altX between `-altX` and `altX`.
+
+**`randomAltY`** (default: `false`)
+Randomize altY between `-altY` and `altY`.
+
+**`randomAltZ`** (default: `true`)
+Randomize altZ between `-altZ` and `altZ`.
+
+```json
+"randomAltX": true,
+"randomAltY": false,
+"randomAltZ": true
+```
+
+### Extra Parameter
+
+**`extra`** (default: `0`)
+Additional parameter for certain particle types (poorly documented by Bukkit).
+
+```json
+"extra": 0.1
+```
+
+## Sound Effects
+
+### Basic Sound
+
+**`sound`**
+Bukkit sound type to play.
+
+```json
+"sound": "ENTITY_BAT_AMBIENT"
+```
+
+Common sounds:
+- `ENTITY_BAT_AMBIENT`
+- `BLOCK_AMETHYST_BLOCK_CHIME`
+- `AMBIENT_CAVE`
+- `BLOCK_BEACON_AMBIENT`
+- `ENTITY_WARDEN_AMBIENT`
+- `MUSIC_DISC_OTHERSIDE`
+
+### Sound Properties
+
+**`soundDistance`** (default: `12`, range: `0-512`)
+Maximum distance from player where sound can play.
+
+```json
+"soundDistance": 20
+```
+
+**`volume`** (default: `1.5`, range: `0.001-512`)
+Sound volume level.
+
+```json
+"volume": 2.0
+```
+
+**`minPitch`** (default: `0.5`, range: `0.01-1.99`)
+Minimum sound pitch.
+
+**`maxPitch`** (default: `1.5`, range: `0.01-1.99`)
+Maximum sound pitch.
+
+```json
+"minPitch": 0.8,
+"maxPitch": 1.2
+```
+
+Pitch is randomized between min and max each time the sound plays.
+
+## Potion Effects
+
+### Basic Potion
+
+**`potionEffect`**
+Potion effect type name (uppercase, spaces replaced with underscores).
+
+```json
+"potionEffect": "NIGHT_VISION"
+```
+
+Common effects:
+- `SPEED`
+- `SLOW`
+- `JUMP_BOOST`
+- `NIGHT_VISION`
+- `WATER_BREATHING`
+- `REGENERATION`
+- `MINING_FATIGUE`
+- `DARKNESS`
+
+### Potion Properties
+
+**`potionStrength`** (default: `-1`, range: `-1` to `1024`)
+Amplifier level for the potion effect. Set to `-1` to disable.
+
+```json
+"potionStrength": 1
+```
+
+- `0` = Level I
+- `1` = Level II
+- `2` = Level III
+
+**`potionTicksMin`** (default: `75`, min: `1`)
+Minimum duration in ticks.
+
+**`potionTicksMax`** (default: `155`, min: `1`)
+Maximum duration in ticks.
+
+```json
+"potionTicksMin": 100,
+"potionTicksMax": 200
+```
+
+Duration is randomized between min and max. 20 ticks = 1 second.
+
+<Note>
+If a player already has a stronger amplifier of the same effect, the new effect won't be applied.
+</Note>
+
+## Custom Commands
+
+**`commandRegistry`**
+Execute commands with configurable location parameters.
+
+```json
+"commandRegistry": {
+  "commands": [
+    "/give %player% diamond 1",
+    "/title %player% actionbar 'Enchanted Forest'"
+  ]
+}
+```
+
+See IrisCommandRegistry for available placeholders and configuration.
+
+## Complete Examples
+
+### Mystical Forest
+
+```json
+{
+  "interval": 150,
+  "chance": 40,
+  "particleEffect": "ENCHANT",
+  "particleCount": 2,
+  "particleDistance": 15,
+  "particleDistanceWidth": 20,
+  "particleAway": 3,
+  "particleOffset": 1,
+  "particleAltX": 0.5,
+  "particleAltY": 0.3,
+  "particleAltZ": 0.5,
+  "randomAltX": true,
+  "randomAltY": true,
+  "randomAltZ": true,
+  "sound": "BLOCK_AMETHYST_BLOCK_CHIME",
+  "soundDistance": 16,
+  "volume": 0.8,
+  "minPitch": 1.0,
+  "maxPitch": 1.5
+}
+```
+
+### Dark Cave Ambience
+
+```json
+{
+  "interval": 3000,
+  "chance": 20,
+  "sound": "AMBIENT_CAVE",
+  "soundDistance": 30,
+  "volume": 2.0,
+  "minPitch": 0.5,
+  "maxPitch": 0.8,
+  "potionEffect": "DARKNESS",
+  "potionStrength": 0,
+  "potionTicksMin": 60,
+  "potionTicksMax": 120
+}
+```
+
+### Underwater Bubble Stream
+
+```json
+{
+  "interval": 100,
+  "chance": 15,
+  "particleEffect": "BUBBLE_COLUMN_UP",
+  "particleCount": 0,
+  "particleAltX": 0,
+  "particleAltY": 2.0,
+  "particleAltZ": 0,
+  "randomAltY": false,
+  "particleDistance": 10,
+  "particleDistanceWidth": 15,
+  "extra": 0.5,
+  "potionEffect": "WATER_BREATHING",
+  "potionStrength": 0,
+  "potionTicksMin": 100,
+  "potionTicksMax": 140
+}
+```
+
+### Desert Heat Waves
+
+```json
+{
+  "interval": 200,
+  "chance": 30,
+  "particleEffect": "FLAME",
+  "particleCount": 1,
+  "particleDistance": 20,
+  "particleDistanceWidth": 25,
+  "particleAway": 5,
+  "particleOffset": 0,
+  "particleAltX": 0.1,
+  "particleAltY": 0.5,
+  "particleAltZ": 0.1,
+  "sound": "BLOCK_FIRE_AMBIENT",
+  "soundDistance": 12,
+  "volume": 0.5,
+  "minPitch": 0.8,
+  "maxPitch": 1.2
+}
+```
+
+### Soul Sand Valley
+
+```json
+{
+  "interval": 120,
+  "chance": 25,
+  "particleEffect": "SOUL_FIRE_FLAME",
+  "particleCount": 2,
+  "particleDistance": 18,
+  "particleDistanceWidth": 20,
+  "particleOffset": -1,
+  "particleAltX": 0.3,
+  "particleAltY": 1.0,
+  "particleAltZ": 0.3,
+  "randomAltY": true,
+  "sound": "ENTITY_WARDEN_HEARTBEAT",
+  "soundDistance": 25,
+  "volume": 1.0,
+  "minPitch": 0.5,
+  "maxPitch": 0.7,
+  "potionEffect": "SLOW",
+  "potionStrength": 0,
+  "potionTicksMin": 40,
+  "potionTicksMax": 80
+}
+```
+
+### Speed Boost Zone
+
+```json
+{
+  "interval": 500,
+  "chance": 10,
+  "particleEffect": "END_ROD",
+  "particleCount": 5,
+  "particleDistance": 8,
+  "particleDistanceWidth": 10,
+  "particleAway": 2,
+  "potionEffect": "SPEED",
+  "potionStrength": 2,
+  "potionTicksMin": 200,
+  "potionTicksMax": 300,
+  "sound": "ENTITY_ENDER_DRAGON_FLAP",
+  "volume": 0.6,
+  "minPitch": 1.5,
+  "maxPitch": 2.0
+}
+```
+
+## Performance Tips
+
+1. **Use reasonable intervals**: Values under 100ms can cause lag with many players
+2. **Limit particle counts**: Keep under 10 for most effects
+3. **Adjust chance appropriately**: High frequency (low chance values) impacts performance
+4. **Limit sound distance**: Smaller values reduce processing overhead
+5. **Avoid complex command registries**: Commands execute on the main thread
+
+## Troubleshooting
+
+### Effects not triggering
+
+Check the interval and chance values. With `interval: 1000` and `chance: 100`, the effect has only a 1% chance every second.
+
+Increase frequency by:
+- Lowering `interval`
+- Lowering `chance` value
+
+### Particles spawning in wrong location
+
+Adjust the positioning parameters:
+- `particleDistance`: How far in front
+- `particleDistanceWidth`: How wide the spawn area
+- `particleAway`: Minimum distance
+- `particleOffset`: Vertical offset from surface
+
+### Sounds too loud/quiet
+
+Adjust `volume` and `soundDistance`. Larger distances reduce effective volume.
+
+### Potion effects not applying
+
+Ensure `potionStrength` is not `-1` and verify the effect name is correct (uppercase, underscores for spaces).

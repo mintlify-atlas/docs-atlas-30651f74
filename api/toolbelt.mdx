@@ -1,0 +1,336 @@
+---
+title: IrisToolbelt Reference
+description: Complete method reference for the IrisToolbelt API
+---
+
+The `IrisToolbelt` class is your main entry point for working with Iris programmatically. It provides methods for world creation, world detection, pregeneration, and data access.
+
+**Package:** `com.volmit.iris.core.tools.IrisToolbelt`
+
+## World Detection
+
+### isIrisWorld()
+
+Check if a world is using the Iris generator.
+
+```java
+public static boolean isIrisWorld(World world)
+```
+
+**Parameters:**
+- `world` - The world to check
+
+**Returns:** `true` if the world uses Iris, `false` otherwise
+
+**Example:**
+```java
+World world = Bukkit.getWorld("myworld");
+if (IrisToolbelt.isIrisWorld(world)) {
+    // This world uses Iris
+}
+```
+
+---
+
+### isIrisStudioWorld()
+
+Check if a world is an Iris studio world.
+
+```java
+public static boolean isIrisStudioWorld(World world)
+```
+
+**Parameters:**
+- `world` - The world to check
+
+**Returns:** `true` if the world is an Iris studio world
+
+---
+
+### isStudio()
+
+Alternate method to check if a world is a studio world.
+
+```java
+public static boolean isStudio(World world)
+```
+
+## Generator Access
+
+### access()
+
+Get the Iris chunk generator for a world.
+
+```java
+public static PlatformChunkGenerator access(World world)
+```
+
+**Parameters:**
+- `world` - The world to access
+
+**Returns:** The `PlatformChunkGenerator` instance, or `null` if not an Iris world
+
+**Example:**
+```java
+PlatformChunkGenerator generator = IrisToolbelt.access(world);
+if (generator != null) {
+    // Access engine data
+    IrisDataManager data = generator.getCompound().getData();
+    Engine defaultEngine = generator.getCompound().getDefaultEngine();
+    Engine engineAtHeight = generator.getCompound().getEngineForHeight(68);
+}
+```
+
+## Dimension Management
+
+### getDimension()
+
+Load a dimension by name or GitHub repository.
+
+```java
+public static IrisDimension getDimension(String dimension)
+```
+
+**Parameters:**
+- `dimension` - The dimension identifier (supports multiple formats):
+  - Local pack folder name: `"overworld"`
+  - GitHub repo: `"GithubUsername/repository"`
+  - GitHub repo with branch: `"GithubUsername/repository/branch"`
+
+**Returns:** The loaded `IrisDimension`, or `null` if not found
+
+**Example:**
+```java
+// Load from local packs folder
+IrisDimension dim = IrisToolbelt.getDimension("overworld");
+
+// Load from GitHub (downloads if needed)
+IrisDimension githubDim = IrisToolbelt.getDimension("IrisDimensions/tropical");
+IrisDimension branchDim = IrisToolbelt.getDimension("IrisDimensions/custom/dev");
+```
+
+## World Creation
+
+### createWorld()
+
+Create a new Iris world using the builder pattern.
+
+```java
+public static IrisCreator createWorld()
+```
+
+**Returns:** An `IrisCreator` builder instance
+
+**Example:**
+```java
+IrisAccess access = IrisToolbelt.createWorld()
+    .name("myWorld")
+    .dimension("overworld")
+    .seed(69133742)
+    .pregen(PregenTask.builder()
+        .center(new Position2(0, 0))  // Center in REGION coords (1 region = 32x32 chunks)
+        .radius(4)  // Radius in REGIONS (4 = 9x9 region map)
+        .build())
+    .create();
+```
+
+---
+
+### removeWorld()
+
+Remove a world from the bukkit.yml configuration.
+
+```java
+public static boolean removeWorld(World world) throws IOException
+```
+
+**Parameters:**
+- `world` - The world to remove
+
+**Returns:** `true` if successful
+
+**Throws:** `IOException` if the operation fails
+
+## Pregeneration
+
+### pregenerate() - With Task and Method
+
+Start a pregeneration task with a specific method.
+
+```java
+public static PregeneratorJob pregenerate(PregenTask task, PregeneratorMethod method, Engine engine)
+public static PregeneratorJob pregenerate(PregenTask task, PregeneratorMethod method, Engine engine, boolean cached)
+```
+
+**Parameters:**
+- `task` - The pregeneration task definition
+- `method` - The pregeneration method to use
+- `engine` - The Iris engine instance
+- `cached` - Whether to use caching (defaults to settings)
+
+**Returns:** A started `PregeneratorJob`
+
+---
+
+### pregenerate() - With Generator
+
+Start pregeneration using a chunk generator (automatically selects method).
+
+```java
+public static PregeneratorJob pregenerate(PregenTask task, PlatformChunkGenerator gen)
+```
+
+**Parameters:**
+- `task` - The pregeneration task
+- `gen` - The Iris chunk generator
+
+**Returns:** A started `PregeneratorJob` using hybrid mode
+
+---
+
+### pregenerate() - With World
+
+Start pregeneration for a world.
+
+```java
+public static PregeneratorJob pregenerate(PregenTask task, World world)
+```
+
+**Parameters:**
+- `task` - The pregeneration task
+- `world` - The world to pregenerate
+
+**Returns:** A started `PregeneratorJob`
+
+## Player Management
+
+### evacuate()
+
+Move all players out of a world.
+
+```java
+public static boolean evacuate(World world)
+public static boolean evacuate(World world, String message)
+```
+
+**Parameters:**
+- `world` - The world to evacuate
+- `message` - Optional custom message to send to players
+
+**Returns:** `true` if players were evacuated successfully
+
+**Example:**
+```java
+// Basic evacuation
+IrisToolbelt.evacuate(world);
+
+// With custom message
+IrisToolbelt.evacuate(world, "This world is being regenerated.");
+```
+
+## Mantle Data System
+
+The Mantle system allows storing custom data at specific world coordinates.
+
+### getMantleData()
+
+Retrieve stored data at a coordinate.
+
+```java
+public static <T> T getMantleData(World world, int x, int y, int z, Class<T> of)
+```
+
+**Parameters:**
+- `world` - The world
+- `x`, `y`, `z` - The coordinates
+- `of` - The data type class
+
+**Returns:** The stored data, or `null` if not found
+
+**Example:**
+```java
+String data = IrisToolbelt.getMantleData(world, x, y, z, String.class);
+```
+
+---
+
+### deleteMantleData()
+
+Remove stored data at a coordinate.
+
+```java
+public static <T> void deleteMantleData(World world, int x, int y, int z, Class<T> of)
+```
+
+---
+
+### retainMantleDataForSlice()
+
+Mark a data type to be retained in memory.
+
+```java
+public static void retainMantleDataForSlice(String className)
+```
+
+**Example:**
+```java
+IrisToolbelt.retainMantleDataForSlice(String.class.getCanonicalName());
+IrisToolbelt.retainMantleDataForSlice(BlockData.class.getCanonicalName());
+```
+
+---
+
+### isRetainingMantleDataForSlice()
+
+Check if a data type is configured for retention.
+
+```java
+public static boolean isRetainingMantleDataForSlice(String className)
+```
+
+## Complete Example
+
+Here's a comprehensive example using multiple API methods:
+
+```java
+package com.example.plugin;
+
+import com.volmit.iris.core.tools.IrisToolbelt;
+import com.volmit.iris.engine.platform.PlatformChunkGenerator;
+import org.bukkit.World;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class MyIrisPlugin extends JavaPlugin {
+    
+    @Override
+    public void onEnable() {
+        // Check if a world uses Iris
+        World world = getServer().getWorld("world");
+        
+        if (IrisToolbelt.isIrisWorld(world)) {
+            getLogger().info("World is using Iris!");
+            
+            // Access the generator
+            PlatformChunkGenerator gen = IrisToolbelt.access(world);
+            if (gen != null) {
+                // Get data from the engine
+                var data = gen.getCompound().getData();
+                var engine = gen.getCompound().getDefaultEngine();
+                
+                getLogger().info("Successfully accessed Iris engine data");
+            }
+        }
+    }
+}
+```
+
+## See Also
+
+<CardGroup cols={2}>
+  <Card title="API Overview" icon="book" href="/api/overview">
+    Learn about the overall API structure
+  </Card>
+  <Card title="Integration Guide" icon="plug" href="/api/integration">
+    Set up Iris in your project
+  </Card>
+</CardGroup>

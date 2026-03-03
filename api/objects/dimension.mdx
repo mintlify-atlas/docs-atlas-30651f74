@@ -1,0 +1,373 @@
+---
+title: Dimension
+description: Configuration reference for IrisDimension - the top-level container for regions, biomes, and world generation settings
+---
+
+Represents a dimension in Iris. Dimensions contain regions, which contain biomes, which contain objects and generators. This is the root configuration object for an Iris world.
+
+## Core Properties
+
+<ParamField path="name" type="string" required>
+  The human readable name of this dimension
+  
+  **Constraints:** Minimum length 2
+</ParamField>
+
+<ParamField path="regions" type="array<string>" required>
+  Define all of the regions to include in this dimension. Dimensions → Regions → Biomes → Objects etc
+  
+  **Constraints:** Minimum 1 item
+</ParamField>
+
+<ParamField path="version" type="integer" default="1">
+  The version of this dimension. Changing this will stop users from accidentally upgrading (and breaking their worlds).
+  
+  **Constraints:** Minimum 0
+</ParamField>
+
+## Height & Dimensions
+
+<ParamField path="dimensionHeight" type="IrisRange" default="{min: -64, max: 320}">
+  Define the min and max Y bounds of this dimension. Iris internally generates from 0 to (max - min). For example at -64 to 320, Iris is internally generating to 0 to 384, then on outputting chunks, it shifts it down by the min height (64 blocks).
+  
+  The fluid height is placed at (fluid height + min height). So a fluid height of 63 would actually show up in the world at 1.
+</ParamField>
+
+<ParamField path="fluidHeight" type="integer" default="63" required>
+  The fluid height for this dimension
+  
+  **Constraints:** 0-1024
+</ParamField>
+
+<ParamField path="logicalHeight" type="integer" default="256">
+  Maximum height at which players can be teleported to through gameplay.
+  
+  **Constraints:** 1-2032
+</ParamField>
+
+<ParamField path="caveLavaHeight" type="integer" default="8">
+  The Subterrain Fluid Layer Height
+  
+  **Constraints:** 0-318
+</ParamField>
+
+## Biome & Region Placement
+
+<ParamField path="regionStyle" type="IrisGeneratorStyle" default="CELLULAR_IRIS_DOUBLE">
+  The placement style of regions
+</ParamField>
+
+<ParamField path="continentalStyle" type="IrisGeneratorStyle" default="CELLULAR_IRIS_DOUBLE">
+  The placement style of land/sea
+</ParamField>
+
+<ParamField path="landBiomeStyle" type="IrisGeneratorStyle" default="CELLULAR_IRIS_DOUBLE">
+  The placement style of land biomes
+</ParamField>
+
+<ParamField path="shoreBiomeStyle" type="IrisGeneratorStyle" default="CELLULAR_IRIS_DOUBLE">
+  The placement style of shore biomes
+</ParamField>
+
+<ParamField path="seaBiomeStyle" type="IrisGeneratorStyle" default="CELLULAR_IRIS_DOUBLE">
+  The placement style of sea biomes
+</ParamField>
+
+<ParamField path="caveBiomeStyle" type="IrisGeneratorStyle" default="CELLULAR_IRIS_DOUBLE">
+  The placement style of cave biomes
+</ParamField>
+
+## Zoom & Scale
+
+<ParamField path="biomeZoom" type="number" default="1">
+  Zoom in or out the biome size. Higher = bigger biomes
+  
+  **Constraints:** 0.0001-512
+</ParamField>
+
+<ParamField path="regionZoom" type="number" default="1">
+  Change the size of regions
+  
+  **Constraints:** 0.0001-512
+</ParamField>
+
+<ParamField path="landZoom" type="number" default="1">
+  This zooms in the land space
+  
+  **Constraints:** 0.0001-512
+</ParamField>
+
+<ParamField path="seaZoom" type="number" default="1">
+  This zooms oceanic biomes
+  
+  **Constraints:** 0.0001-512
+</ParamField>
+
+<ParamField path="continentZoom" type="number" default="1">
+  Zoom in continents
+  
+  **Constraints:** 0.0001-512
+</ParamField>
+
+<ParamField path="rockZoom" type="number" default="5">
+  The rock zoom mostly for zooming in on a wispy palette
+  
+  **Constraints:** 0.0001-512
+</ParamField>
+
+## Coordinate Manipulation
+
+<ParamField path="dimensionAngleDeg" type="number" default="0">
+  You can rotate the input coordinates by an angle. This can make terrain appear more natural (less sharp corners and lines). This literally rotates the entire dimension by an angle. Hint: Try 12 degrees or something not on a 90 or 45 degree angle.
+  
+  **Constraints:** 0-360
+</ParamField>
+
+<ParamField path="coordFractureDistance" type="number" default="20">
+  Coordinate fracturing applies noise to the input coordinates. This creates the 'iris swirls' and wavy features. The distance pushes these waves further into places they shouldnt be. This is a block value multiplier.
+  
+  **Constraints:** 0-8192
+</ParamField>
+
+<ParamField path="coordFractureZoom" type="number" default="8">
+  Coordinate fracturing zoom. Higher = less frequent warping, Lower = more frequent and rapid warping / swirls.
+  
+  **Constraints:** 0.0001-512
+</ParamField>
+
+## Land & Water
+
+<ParamField path="landChance" type="number" default="0.625">
+  The land chance. Up to 1.0 for total land or 0.0 for total sea
+  
+  **Constraints:** 0-1
+</ParamField>
+
+<ParamField path="rockPalette" type="IrisMaterialPalette" default="['stone']">
+  The palette of blocks for 'stone'
+</ParamField>
+
+<ParamField path="fluidPalette" type="IrisMaterialPalette" default="['water']">
+  The palette of blocks for 'water'
+</ParamField>
+
+## World Features
+
+<ParamField path="bedrock" type="boolean" default="true">
+  Should bedrock be generated or not.
+</ParamField>
+
+<ParamField path="carving" type="IrisCarving" default="{}">
+  Carving configuration for the dimension (caves, ravines, etc)
+</ParamField>
+
+<ParamField path="fluidBodies" type="IrisFluidBodies" default="{}">
+  Configuration of fluid bodies such as rivers & lakes
+</ParamField>
+
+<ParamField path="deposits" type="array<IrisDepositGenerator>" default="[]">
+  Define global deposit generators
+</ParamField>
+
+<ParamField path="ores" type="array<IrisOreGenerator>" default="[]">
+  Collection of ores to be generated
+</ParamField>
+
+<ParamField path="overlayNoise" type="array<IrisShapedGeneratorStyle>" default="[]">
+  Overlay additional noise on top of the interoplated terrain.
+</ParamField>
+
+## Decoration & Post-Processing
+
+<ParamField path="decorate" type="boolean" default="true">
+  Generate decorations or not
+</ParamField>
+
+<ParamField path="postProcessing" type="boolean" default="true">
+  Use post processing or not
+</ParamField>
+
+<ParamField path="postProcessingSlabs" type="boolean" default="true">
+  Add slabs in post processing
+</ParamField>
+
+<ParamField path="postProcessingWalls" type="boolean" default="true">
+  Add painted walls in post processing
+</ParamField>
+
+<ParamField path="useMantle" type="boolean" default="true">
+  Disable this to stop placing objects, entities, features & updates
+</ParamField>
+
+<ParamField path="preventLeafDecay" type="boolean" default="false">
+  Prevent Leaf decay as if placed in creative mode
+</ParamField>
+
+## Structures
+
+<ParamField path="jigsawStructures" type="array<IrisJigsawStructurePlacement>" default="[]">
+  Jigsaw structures
+</ParamField>
+
+<ParamField path="jigsawStructureDivisor" type="number" default="18">
+  The jigsaw structure divisor to use when generating missing jigsaw placement values
+</ParamField>
+
+<ParamField path="stronghold" type="string">
+  If defined, Iris will place the given jigsaw structure where minecraft should place the overworld stronghold.
+</ParamField>
+
+<ParamField path="strongholdJumpDistance" type="integer" default="1280">
+  The average distance between strongholds
+</ParamField>
+
+<ParamField path="maxStrongholds" type="integer" default="14">
+  Define the maximum strongholds to place
+</ParamField>
+
+## Entities & Spawning
+
+<ParamField path="entitySpawners" type="array<string>" default="[]">
+  Spawn Entities in this dimension over time. Iris will continually replenish these mobs just like vanilla does.
+</ParamField>
+
+<ParamField path="infiniteEnergy" type="boolean" default="false">
+  If true, the spawner system has infinite energy. This is NOT recommended because it would allow for mobs to keep spawning over and over without a rate limit
+</ParamField>
+
+<ParamField path="maximumEnergy" type="number" default="1000">
+  This is the maximum energy you can have in a dimension
+  
+  **Constraints:** 0-10000
+</ParamField>
+
+## Environment
+
+<ParamField path="environment" type="Environment" default="NORMAL">
+  The world environment (NORMAL, NETHER, THE_END)
+</ParamField>
+
+<ParamField path="dimensionOptions" type="IrisDimensionTypeOptions" default="{}">
+  Define options for this dimension
+</ParamField>
+
+<ParamField path="mode" type="IrisDimensionMode" default="{}" required>
+  Define the mode of this dimension (required!)
+</ParamField>
+
+## Loot & Block Drops
+
+<ParamField path="loot" type="IrisLootReference" default="{}">
+  Reference loot tables in this area
+</ParamField>
+
+<ParamField path="blockDrops" type="array<IrisBlockDrops>" default="[]">
+  Define custom block drops for this dimension
+</ParamField>
+
+## Scripting
+
+<ParamField path="engineScripts" type="array<string>" default="[]">
+  A list of scripts executed on engine setup. File extension: .engine.kts
+</ParamField>
+
+<ParamField path="dataScripts" type="array<string>" default="[]">
+  A list of scripts executed on data setup. File extension: .data.kts
+</ParamField>
+
+<ParamField path="chunkUpdateScripts" type="array<string>" default="[]">
+  A list of scripts executed on chunk update. File extension: .update.kts
+</ParamField>
+
+## Testing & Debug
+
+<ParamField path="focus" type="string" default="">
+  Keep this either undefined or empty. Setting any biome name into this will force iris to only generate the specified biome. Great for testing.
+</ParamField>
+
+<ParamField path="focusRegion" type="string" default="">
+  Keep this either undefined or empty. Setting any region name into this will force iris to only generate the specified region. Great for testing.
+</ParamField>
+
+<ParamField path="debugChunkCrossSections" type="boolean" default="false">
+  If set to true, Iris will remove chunks to allow visualizing cross sections of chunks easily
+</ParamField>
+
+<ParamField path="debugCrossSectionsMod" type="integer" default="3">
+  Every X/Z % debugCrossSectionsMod == 0 cuts the chunk
+  
+  **Constraints:** 2-16
+</ParamField>
+
+<ParamField path="explodeBiomePalettes" type="boolean" default="false">
+  Vertically split up the biome palettes with 3 air blocks in between to visualize them
+</ParamField>
+
+<ParamField path="studioMode" type="StudioMode" default="NORMAL">
+  Studio Mode for testing different parts of the world
+</ParamField>
+
+## Advanced Settings
+
+<ParamField path="treeSettings" type="IrisTreeSettings" default="{}">
+  Tree growth override settings
+</ParamField>
+
+<ParamField path="globalPreProcessors" type="array<IrisPreProcessors>" default="[]">
+  A list of globally applied pre-processors
+</ParamField>
+
+<ParamField path="disabledComponents" type="array<MantleFlag>" default="[]">
+  Collection of disabled components
+</ParamField>
+
+<ParamField path="disableExplorerMaps" type="boolean" default="false">
+  Prevent cartographers to generate explorer maps (Iris worlds only). ONLY TOUCH IF YOUR SERVER CRASHES WHILE GENERATING EXPLORER MAPS
+</ParamField>
+
+<ParamField path="legacyRarity" type="boolean" default="true">
+  Use legacy rarity instead of modern one. WARNING: Changing this may break expressions and image maps
+</ParamField>
+
+## JSON Example
+
+```json
+{
+  "name": "Overworld",
+  "version": 1,
+  "regions": [
+    "temperate",
+    "tropical",
+    "frozen"
+  ],
+  "dimensionHeight": {
+    "min": -64,
+    "max": 320
+  },
+  "fluidHeight": 63,
+  "logicalHeight": 256,
+  "environment": "NORMAL",
+  "mode": {
+    "type": "STANDARD"
+  },
+  "landChance": 0.625,
+  "biomeZoom": 1.0,
+  "regionZoom": 1.0,
+  "coordFractureDistance": 20,
+  "coordFractureZoom": 8,
+  "dimensionAngleDeg": 12,
+  "bedrock": true,
+  "decorate": true,
+  "postProcessing": true,
+  "rockPalette": {
+    "palette": [
+      {"block": "stone"}
+    ]
+  },
+  "fluidPalette": {
+    "palette": [
+      {"block": "water"}
+    ]
+  }
+}
+```

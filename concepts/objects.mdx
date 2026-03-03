@@ -1,0 +1,373 @@
+---
+title: Objects
+description: Understanding Iris objects and structure placement
+---
+
+## What is an Object?
+
+An **object** in Iris is a pre-built 3D structure that can be placed during world generation. Objects range from simple features like single trees to complex multi-block structures like buildings or ruins.
+
+Unlike decorators (which place single blocks), objects are:
+- Multi-block structures saved as `.iob` files
+- Rotatable and transformable
+- Can contain tile entities (chests, spawners, signs)
+- Support advanced features (loot tables, entity spawning, clipping)
+
+## Object Types
+
+### Natural Objects
+- Trees (oak, birch, custom species)
+- Rocks and boulders
+- Fallen logs
+- Vegetation clusters
+
+### Structural Objects
+- Buildings and ruins
+- Temples and shrines
+- Bridges and pathways
+- Decorative features
+
+### Technical Objects
+- Ore veins (custom ore placement)
+- Cave features
+- Underground structures
+
+<Info>
+Objects are created in Studio Mode using the `/iris object` commands, then saved as `.iob` files in the `objects/` folder.
+</Info>
+
+## Object File Structure
+
+Objects are stored as `.iob` (Iris Object Binary) files:
+
+```
+packs/
+  my-dimension/
+    objects/
+      trees/
+        oak-tree.iob
+        birch-tree.iob
+      rocks/
+        boulder-small.iob
+        boulder-large.iob
+      structures/
+        ruin-1.iob
+```
+
+Each `.iob` file contains:
+- Block data (position, type, properties)
+- Tile entity data (chest contents, spawner settings)
+- Metadata (size, center point)
+
+## Object Configuration
+
+While `.iob` files store the structure, JSON files configure how they're placed:
+
+```json objects/oak-tree.json
+{
+  "name": "Oak Tree",
+  "file": "trees/oak-tree",
+  "height": 12,
+  "width": 7,
+  "centerX": 3,
+  "centerZ": 3
+}
+```
+
+<ParamField path="name" type="string" required>
+  Human-readable object name
+</ParamField>
+
+<ParamField path="file" type="string">
+  Path to the `.iob` file (relative to `objects/` folder, without extension)
+</ParamField>
+
+<ParamField path="height" type="integer">
+  Object height in blocks
+</ParamField>
+
+<ParamField path="width" type="integer">
+  Object width (X/Z dimensions)
+</ParamField>
+
+<ParamField path="centerX" type="integer">
+  X-offset of the center/origin point
+</ParamField>
+
+<ParamField path="centerZ" type="integer">
+  Z-offset of the center/origin point
+</ParamField>
+
+## Placement Configuration
+
+Objects are placed through `IrisObjectPlacement` in biome files:
+
+```json biomes/forest.json
+{
+  "objects": [
+    {
+      "chance": 0.01,
+      "density": 2,
+      "place": [
+        "oak-tree",
+        "birch-tree"
+      ],
+      "mode": "PAINT",
+      "translate": {
+        "y": -1
+      }
+    }
+  ]
+}
+```
+
+### Placement Parameters
+
+<ParamField path="chance" type="number">
+  Probability (0.0-1.0) of attempting to place this object per chunk
+</ParamField>
+
+<ParamField path="density" type="integer">
+  Number of placement attempts per successful spawn roll
+</ParamField>
+
+<ParamField path="place" type="string[]">
+  List of object files that can be randomly selected
+</ParamField>
+
+<ParamField path="mode" type="ObjectPlaceMode">
+  Placement mode:
+  - `PAINT`: Replace existing blocks
+  - `OVERLAY`: Only place in air
+  - `STILT`: Place on stilts/pillars
+  - `MAX_HEIGHT`: Place at terrain surface
+  - `FAST_MAX_HEIGHT`: Faster surface placement
+</ParamField>
+
+### Translation and Rotation
+
+```json
+{
+  "translate": {
+    "x": 0,
+    "y": -2,
+    "z": 0
+  },
+  "rotation": {
+    "enabled": true,
+    "yAxis": {
+      "enabled": true,
+      "min": 0,
+      "max": 360,
+      "interval": 90
+    }
+  }
+}
+```
+
+<ParamField path="translate" type="IrisObjectTranslate">
+  Offset the object placement in X/Y/Z
+</ParamField>
+
+<ParamField path="rotation" type="IrisObjectRotation">
+  Configure rotation on X/Y/Z axes. `interval` sets rotation snapping (e.g., 90 = only 0/90/180/270 degrees)
+</ParamField>
+
+### Scaling
+
+```json
+{
+  "scale": {
+    "enabled": true,
+    "multiplier": {
+      "x": 1.0,
+      "y": 1.2,
+      "z": 1.0
+    }
+  }
+}
+```
+
+<ParamField path="scale" type="IrisObjectScale">
+  Stretch or shrink the object. Values less than 1.0 = smaller, greater than 1.0 = larger.
+</ParamField>
+
+## Advanced Features
+
+### Loot Tables
+
+Objects can contain chests with custom loot:
+
+```json objects/treasure-chest.json
+{
+  "name": "Treasure Chest",
+  "file": "structures/treasure-chest",
+  "loot": {
+    "mode": "ADD",
+    "tables": [
+      "treasure-common",
+      "treasure-rare"
+    ]
+  }
+}
+```
+
+<ParamField path="loot.mode" type="IrisLootMode">
+  `REPLACE` (clear chest, add loot) or `ADD` (add to existing)
+</ParamField>
+
+<ParamField path="loot.tables" type="string[]">
+  List of loot table files from `loot/` folder
+</ParamField>
+
+### Entity Spawning
+
+```json
+{
+  "entity": {
+    "types": [
+      "minecraft:zombie",
+      "minecraft:skeleton"
+    ],
+    "interval": 32
+  }
+}
+```
+
+<ParamField path="entity.types" type="string[]">
+  Entity types to spawn near this object
+</ParamField>
+
+<ParamField path="entity.interval" type="integer">
+  Spacing between entity spawns
+</ParamField>
+
+### Slope Clipping
+
+Prevent placement on steep terrain:
+
+```json
+{
+  "slopeCondition": {
+    "minimumSlope": 0.0,
+    "maximumSlope": 0.3
+  }
+}
+```
+
+<ParamField path="slopeCondition" type="IrisSlopeClip">
+  Slope constraints (0.0 = flat, 1.0 = vertical)
+</ParamField>
+
+## Creating Objects
+
+### Using Studio Mode
+
+<Steps>
+  <Step title="Enter Studio Mode">
+    ```bash
+    /iris studio create myworld overworld
+    ```
+  </Step>
+  
+  <Step title="Build Your Structure">
+    Use WorldEdit, building tools, or manual placement to create the structure
+  </Step>
+  
+  <Step title="Save the Object">
+    ```bash
+    /iris object save my-tree
+    ```
+    
+    This creates `objects/my-tree.iob`
+  </Step>
+  
+  <Step title="Test Placement">
+    ```bash
+    /iris object place my-tree
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+Set your object's center point carefully. This determines the rotation pivot and placement origin.
+</Tip>
+
+## Example: Tree Configuration
+
+```json objects/custom-oak.json
+{
+  "name": "Custom Oak Tree",
+  "file": "trees/custom-oak",
+  "height": 15,
+  "width": 9,
+  "centerX": 4,
+  "centerZ": 4,
+  
+  "rotation": {
+    "enabled": true,
+    "yAxis": {
+      "enabled": true,
+      "min": 0,
+      "max": 360,
+      "interval": 1
+    }
+  },
+  
+  "scale": {
+    "enabled": true,
+    "multiplier": {
+      "x": 1.0,
+      "y": 1.1,
+      "z": 1.0
+    }
+  },
+  
+  "slopeCondition": {
+    "minimumSlope": 0.0,
+    "maximumSlope": 0.2
+  }
+}
+```
+
+Then place it in a biome:
+
+```json biomes/oak-forest.json
+{
+  "objects": [
+    {
+      "chance": 0.15,
+      "density": 3,
+      "place": ["custom-oak"],
+      "mode": "PAINT",
+      "translate": {
+        "y": -1
+      }
+    }
+  ]
+}
+```
+
+## Best Practices
+
+<Tip>
+- Keep objects under 32x32x32 blocks for performance
+- Use object variants (create 3-5 versions of trees/rocks)
+- Set appropriate `chance` values (0.01-0.2 for large objects)
+- Test slope conditions to prevent floating structures
+</Tip>
+
+<Warning>
+Very large objects (greater than 64x64x64) can cause significant generation lag. Break them into smaller pieces or use jigsaw structures instead.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Object Creation Guide" icon="pen-to-square" href="/content/objects-guide">
+    Learn to create custom objects
+  </Card>
+  <Card title="Jigsaw Structures" icon="puzzle-piece" href="/advanced/jigsaw-structures">
+    Advanced procedural structures
+  </Card>
+</CardGroup>

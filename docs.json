@@ -1,122 +1,131 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Iris",
+  "theme": "aspen",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#7C3AED",
+    "light": "#A78BFA",
+    "dark": "#5B21B6"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/VolmitSoftware/Iris"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/VolmitSoftware/Iris"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
               "index",
+              "installation",
               "quickstart",
-              "development"
+              "configuration"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/dimensions",
+              "concepts/regions",
+              "concepts/biomes",
+              "concepts/objects",
+              "concepts/generators",
+              "concepts/noise"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "World Generation",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "generation/creating-worlds",
+              "generation/pregeneration",
+              "generation/terrain-editing",
+              "generation/studio-mode"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Content Creation",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "content/dimensions-guide",
+              "content/biomes-guide",
+              "content/regions-guide",
+              "content/objects-guide",
+              "content/decorators",
+              "content/loot-tables",
+              "content/entity-spawners"
+            ]
+          },
+          {
+            "group": "Advanced Features",
+            "pages": [
+              "advanced/jigsaw-structures",
+              "advanced/caves-ravines",
+              "advanced/custom-effects",
+              "advanced/expressions",
+              "advanced/data-packs"
+            ]
+          },
+          {
+            "group": "Commands",
+            "pages": [
+              "commands/overview",
+              "commands/iris",
+              "commands/studio",
+              "commands/pregeneration",
+              "commands/developer"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Getting Started",
             "pages": [
-              "api-reference/introduction"
+              "api/overview",
+              "api/integration",
+              "api/toolbelt"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Core API",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/world-creation",
+              "api/dimension-access",
+              "api/engine-access",
+              "api/data-loader"
+            ]
+          },
+          {
+            "group": "Object Types",
+            "pages": [
+              "api/objects/dimension",
+              "api/objects/region",
+              "api/objects/biome",
+              "api/objects/generator",
+              "api/objects/object-placement"
+            ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "api/events/engine-events",
+              "api/events/loot-events",
+              "api/events/hotload-events"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

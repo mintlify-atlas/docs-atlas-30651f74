@@ -1,0 +1,388 @@
+---
+title: /studio Commands
+description: Studio mode commands for dimension pack development and testing
+---
+
+The `/studio` command provides tools for developing and testing Iris dimension packs. These commands are essential for pack creators. Access via `/studio`, `/std`, or `/s`.
+
+## Studio Management
+
+### Open Studio World
+
+Open a studio world for testing a dimension pack.
+
+```bash
+/studio open [dimension] [seed]
+```
+
+**Parameters:**
+- `dimension` - The dimension pack to test (default: `default`)
+- `seed` - The seed for generation (default: `1337`)
+
+**Aliases:** `o`
+
+**Example:**
+```bash
+/studio open overworld
+/studio o custom-pack 54321
+```
+
+### Close Studio
+
+Close the currently open studio project.
+
+```bash
+/studio close
+```
+
+**Aliases:** `x`, `c`
+
+### Create New Project
+
+Create a new dimension pack project.
+
+```bash
+/studio create <name> [template]
+```
+
+**Parameters:**
+- `name` - Name of the new project
+- `template` - Existing pack to use as template
+
+**Aliases:** `+`
+
+**Example:**
+```bash
+/studio create my-dimension
+/studio create fantasy-world overworld
+```
+
+### Teleport to Studio
+
+Teleport to the active studio world.
+
+```bash
+/studio tpstudio
+```
+
+**Aliases:** `stp`
+
+## Pack Management
+
+### Download Pack
+
+Download a dimension pack for editing.
+
+```bash
+/studio download [pack] [branch] [overwrite]
+```
+
+**Parameters:**
+- `pack` - Pack to download (default: `overworld`)
+- `branch` - Git branch (default: `master`)
+- `overwrite` - Overwrite existing (default: `false`)
+
+**Aliases:** `dl`
+
+**Example:**
+```bash
+/studio download overworld
+/studio dl custom-pack main overwrite=true
+```
+
+### Package Dimension
+
+Package a dimension into a compressed format for distribution.
+
+```bash
+/studio pkg [dimension] [obfuscate] [minify]
+```
+
+**Parameters:**
+- `dimension` - Dimension to package (default: `default`)
+- `obfuscate` - Obfuscate the pack (default: `false`)
+- `minify` - Minify JSON (default: `true`)
+
+**Aliases:** `package`
+
+**Example:**
+```bash
+/studio pkg overworld
+/studio package my-pack obfuscate=true minify=true
+```
+
+### Get Pack Version
+
+Display the version of a dimension pack.
+
+```bash
+/studio version [dimension]
+```
+
+**Example:**
+```bash
+/studio version overworld
+```
+
+### Update Workspace
+
+Update the VSCode workspace configuration for a dimension.
+
+```bash
+/studio update [dimension]
+```
+
+**Example:**
+```bash
+/studio update overworld
+```
+
+## Development Tools
+
+### Hotload Changes
+
+Reload dimension files without restarting the server.
+
+```bash
+/studio hotload
+```
+
+**Aliases:** `reload`, `h`
+
+### Regenerate Chunks
+
+Regenerate chunks in a radius around you for testing changes.
+
+```bash
+/studio regen [radius]
+```
+
+**Parameters:**
+- `radius` - Chunk radius to regenerate (default: `5`)
+
+**Aliases:** `rg`
+
+**Example:**
+```bash
+/studio regen
+/studio regen 10
+```
+
+### Open VSCode
+
+Open VSCode for a dimension pack.
+
+```bash
+/studio vscode [dimension]
+```
+
+**Aliases:** `vsc`, `edit`
+
+**Example:**
+```bash
+/studio vscode overworld
+```
+
+## Analysis Tools
+
+### Profile Performance
+
+Generate a performance profile for a dimension pack.
+
+```bash
+/studio profile [dimension]
+```
+
+**Example:**
+```bash
+/studio profile overworld
+```
+
+Generates a detailed report showing:
+- Noise style performance
+- Interpolator timings
+- Generator performance
+- Biome performance
+- Region performance
+
+### Region Distribution
+
+Calculate the spawn chance for each region.
+
+```bash
+/studio regions [radius]
+```
+
+**Parameters:**
+- `radius` - Radius in chunks to sample (default: `500`)
+
+**Example:**
+```bash
+/studio regions 1000
+```
+
+### Structure Distances
+
+Analyze structure distribution and spacing.
+
+```bash
+/studio distances <radius>
+```
+
+**Parameters:**
+- `radius` - Radius in chunks to sample
+
+**Aliases:** `dist`
+
+**Example:**
+```bash
+/studio distances 100
+```
+
+### Get Object Info
+
+Generate a report of objects in nearby chunks.
+
+```bash
+/studio objects
+```
+
+**Aliases:** `find-objects`
+
+Creates a detailed report including:
+- Chunk information
+- World statistics
+- Biome distribution
+- Object placements and sizes
+
+## Visual Tools
+
+### Noise Explorer
+
+Open the noise explorer GUI.
+
+```bash
+/studio noise
+```
+
+**Aliases:** `nmap`, `n`
+
+<Note>
+Requires `useServerLaunchedGuis` enabled in Iris settings.
+</Note>
+
+### Explore Generator
+
+Preview a noise generator in the explorer GUI.
+
+```bash
+/studio explore <generator> [seed]
+```
+
+**Parameters:**
+- `generator` - The generator to visualize
+- `seed` - Seed for generation (default: `12345`)
+
+**Aliases:** `generator`, `gen`
+
+### Render World Map
+
+Open the world map renderer GUI.
+
+```bash
+/studio map [world]
+```
+
+**Aliases:** `render`
+
+**Example:**
+```bash
+/studio map
+/studio map MyWorld
+```
+
+## Testing Tools
+
+### Preview Loot
+
+Show what loot would spawn at your location.
+
+```bash
+/studio loot [fast] [add]
+```
+
+**Parameters:**
+- `fast` - Fast item insertion (default: `false`)
+- `add` - Append to current inventory (default: `true`)
+
+**Example:**
+```bash
+/studio loot
+/studio loot fast=true add=false
+```
+
+### Spawn Entity
+
+Spawn an Iris entity for testing.
+
+```bash
+/studio spawn <entity> [location]
+```
+
+**Parameters:**
+- `entity` - The Iris entity to spawn
+- `location` - Where to spawn (defaults to your location)
+
+**Aliases:** `summon`
+
+**Example:**
+```bash
+/studio spawn custom_mob
+```
+
+### Execute Script
+
+Run an Iris script.
+
+```bash
+/studio execute <script>
+```
+
+**Aliases:** `run`
+
+**Example:**
+```bash
+/studio execute test-script
+```
+
+### Charge Spawners
+
+Manually charge all spawners in the area.
+
+```bash
+/studio charge
+```
+
+**Aliases:** `zzt`
+
+## Conversion
+
+### Convert Objects
+
+Convert objects in the "convert" folder.
+
+```bash
+/studio convert
+```
+
+## Permission Nodes
+
+```yaml
+iris.command.studio.open
+iris.command.studio.close
+iris.command.studio.create
+iris.command.studio.hotload
+iris.command.studio.regen
+iris.command.studio.profile
+iris.command.studio.package
+```

@@ -1,0 +1,262 @@
+---
+title: Dimensions
+description: Understanding Iris dimensions and how they define world generation
+---
+
+## What is a Dimension?
+
+A **dimension** in Iris is the top-level configuration that defines an entire world. It serves as the root container for all world generation settings, including:
+
+- Regional structure and biome organization
+- Height limits and world bounds
+- Default generators and noise configurations
+- Environmental settings (fluids, rock layers, effects)
+- World-specific features (strongholds, caves, structures)
+
+Dimensions in Iris are analogous to Minecraft's vanilla dimensions (Overworld, Nether, End), but are fully customizable through JSON configuration files.
+
+## Dimension Hierarchy
+
+Iris uses a hierarchical generation system:
+
+```
+Dimension (World-level)
+  └─ Regions (Large areas)
+      └─ Biomes (Local terrain)
+          └─ Objects & Decorators (Details)
+```
+
+<Info>
+A dimension defines the "what can spawn where" rules. Regions group biomes by theme, and biomes define the actual terrain.
+</Info>
+
+## Core Configuration
+
+### Basic Structure
+
+Every dimension requires at minimum:
+
+```json dimensions/example.json
+{
+  "name": "My Custom Dimension",
+  "regions": [
+    "plains",
+    "mountains",
+    "desert"
+  ]
+}
+```
+
+### Key Fields
+
+<ParamField path="name" type="string" required>
+  The human-readable name of this dimension (minimum 2 characters)
+</ParamField>
+
+<ParamField path="regions" type="string[]" required>
+  List of region file names (without `.json` extension) that can spawn in this dimension
+</ParamField>
+
+<ParamField path="logicalHeight" type="integer" default="256">
+  Maximum height for player teleportation (1-2032). Controls the effective world height.
+</ParamField>
+
+<ParamField path="dimensionAngleDeg" type="number" default="0.0">
+  Rotation angle in degrees for the dimension coordinate space
+</ParamField>
+
+<ParamField path="environment" type="string" default="NORMAL">
+  Bukkit environment type: `NORMAL`, `NETHER`, or `THE_END`
+</ParamField>
+
+## World Generation Settings
+
+### Height Configuration
+
+```json
+{
+  "minHeight": -64,
+  "maxHeight": 320,
+  "logicalHeight": 256
+}
+```
+
+<ParamField path="minHeight" type="integer" default="0">
+  Minimum world height. Affects bedrock placement and generation bounds.
+</ParamField>
+
+<ParamField path="maxHeight" type="integer" default="256">
+  Maximum world height. Defines the build limit.
+</ParamField>
+
+### Rock and Fluid Layers
+
+```json
+{
+  "rockPalette": {
+    "palette": [
+      { "block": "stone" },
+      { "block": "deepslate" }
+    ],
+    "style": { "style": "STATIC" }
+  },
+  "fluidPalette": {
+    "palette": [
+      { "block": "water" }
+    ]
+  },
+  "fluidHeight": 63
+}
+```
+
+<ParamField path="rockPalette" type="IrisMaterialPalette">
+  Defines the base rock layer (what fills below terrain). Uses block palettes with noise-based variation.
+</ParamField>
+
+<ParamField path="fluidPalette" type="IrisMaterialPalette">
+  Defines the fluid (typically water or lava) that fills below `fluidHeight`
+</ParamField>
+
+<ParamField path="fluidHeight" type="integer" default="63">
+  The Y-level at which fluid generates (sea level)
+</ParamField>
+
+## Environmental Features
+
+### Caves and Ravines
+
+```json
+{
+  "caves": ["limestone-caves", "crystal-caves"],
+  "ravines": ["deep-ravines"],
+  "carving": ["canyon-carving"]
+}
+```
+
+<ParamField path="caves" type="string[]">
+  List of cave generator files from `caves/` folder
+</ParamField>
+
+<ParamField path="ravines" type="string[]">
+  List of ravine generator files from `ravines/` folder
+</ParamField>
+
+<ParamField path="carving" type="string[]">
+  Advanced carving generators for custom terrain features
+</ParamField>
+
+### Jigsaw Structures
+
+```json
+{
+  "jigsawStructures": ["villages", "temples"],
+  "stronghold": "custom-stronghold"
+}
+```
+
+<ParamField path="jigsawStructures" type="string[]">
+  List of jigsaw structure files that can spawn in this dimension
+</ParamField>
+
+<ParamField path="stronghold" type="string">
+  Custom jigsaw structure to use for strongholds (replaces vanilla strongholds)
+</ParamField>
+
+## Advanced Features
+
+### Coordinate Manipulation
+
+```json
+{
+  "coordFractureDistance": 150,
+  "coordFractureZoom": 0.02
+}
+```
+
+These settings create coordinate "fractures" that warp the terrain, creating more organic borders between biomes.
+
+### Overlay Dimensions
+
+```json
+{
+  "overlay": true,
+  "vanillaBiomeZoom": 4.0
+}
+```
+
+<ParamField path="overlay" type="boolean" default="false">
+  If true, Iris decorates vanilla terrain instead of generating its own
+</ParamField>
+
+<ParamField path="vanillaBiomeZoom" type="number">
+  Zoom level for vanilla biome sampling (when overlay mode is enabled)
+</ParamField>
+
+## Example: Complete Dimension
+
+```json dimensions/overworld.json
+{
+  "name": "Custom Overworld",
+  "environment": "NORMAL",
+  "minHeight": -64,
+  "maxHeight": 320,
+  "logicalHeight": 256,
+  "fluidHeight": 63,
+  
+  "regions": [
+    "temperate",
+    "tropical",
+    "arctic",
+    "mountains"
+  ],
+  
+  "rockPalette": {
+    "palette": [
+      { "block": "minecraft:stone", "weight": 8 },
+      { "block": "minecraft:andesite", "weight": 1 },
+      { "block": "minecraft:diorite", "weight": 1 }
+    ],
+    "style": {
+      "style": "GLOB",
+      "zoom": 0.2
+    }
+  },
+  
+  "fluidPalette": {
+    "palette": [
+      { "block": "minecraft:water" }
+    ]
+  },
+  
+  "caves": ["standard-caves"],
+  "ravines": ["deep-ravines"],
+  "jigsawStructures": ["village-plains", "temple-desert"],
+  
+  "coordFractureDistance": 180,
+  "coordFractureZoom": 0.015
+}
+```
+
+## Best Practices
+
+<Tip>
+- Start with 3-5 regions for a balanced dimension
+- Keep `logicalHeight` at or below `maxHeight`
+- Use `coordFracture` settings to create natural biome transitions
+- Test cave and ravine density before finalizing
+</Tip>
+
+<Warning>
+Changing `minHeight` or `maxHeight` on existing worlds requires regeneration. These cannot be modified without data loss.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Regions" icon="map" href="/concepts/regions">
+    Learn how regions organize biomes
+  </Card>
+  <Card title="Create a Dimension" icon="wand-magic-sparkles" href="/content/dimensions-guide">
+    Step-by-step dimension creation guide
+  </Card>
+</CardGroup>

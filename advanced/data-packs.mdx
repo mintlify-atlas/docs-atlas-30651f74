@@ -1,0 +1,464 @@
+---
+title: Data Packs Integration
+description: Use Minecraft vanilla data packs with Iris dimensions
+---
+
+Iris supports integration with Minecraft's vanilla data pack system, allowing you to use official structures and configure dimension types with custom options.
+
+## Overview
+
+Data pack integration enables:
+- Using vanilla Minecraft structures in Iris dimensions
+- Custom dimension type configurations
+- Version-specific data fixes and compatibility
+- Automatic pack format handling across Minecraft versions
+
+## Data Pack Versions
+
+Iris automatically handles pack format versioning based on your Minecraft server version.
+
+### Supported Versions
+
+| Minecraft Version | Pack Format | Data Fixer |
+|------------------|-------------|------------|
+| 1.19.2 | 10 | DataFixerV1192 |
+| 1.20.5-1.20.6 | 41 | DataFixerV1206 |
+| 1.21.3 | 57 | DataFixerV1213 |
+| 1.21.11+ | 75 | DataFixerV1217 |
+
+Iris automatically selects the correct pack format for your server version.
+
+## Using Datapack Structures
+
+You can reference vanilla Minecraft structures in jigsaw structure configurations.
+
+### Basic Usage
+
+```json
+{
+  "datapackStructures": [
+    "minecraft:village/plains/town_centers/plains_meeting_point_1",
+    "minecraft:village/plains/town_centers/plains_meeting_point_2",
+    "minecraft:village/plains/houses/plains_small_house_1"
+  ]
+}
+```
+
+<Note>
+When `datapackStructures` is defined, all other jigsaw structure settings (pieces, maxDepth, etc.) are ignored.
+</Note>
+
+### Structure Paths
+
+Structure paths follow Minecraft's namespaced format:
+
+```
+namespace:category/subcategory/structure_name
+```
+
+**Examples:**
+- `minecraft:village/plains/houses/plains_medium_house_1`
+- `minecraft:village/savanna/town_centers/savanna_meeting_point_1`
+- `minecraft:pillager_outpost/base_plates`
+- `minecraft:ancient_city/city_center`
+- `minecraft:bastion/units/center_pieces/center_0`
+
+### Available Vanilla Structures
+
+#### Villages
+
+**Plains Villages:**
+```json
+"datapackStructures": [
+  "minecraft:village/plains/town_centers/plains_meeting_point_1",
+  "minecraft:village/plains/houses/plains_small_house_1",
+  "minecraft:village/plains/houses/plains_medium_house_1",
+  "minecraft:village/plains/streets/corner_01"
+]
+```
+
+**Desert Villages:**
+```json
+"datapackStructures": [
+  "minecraft:village/desert/town_centers/desert_meeting_point_1",
+  "minecraft:village/desert/houses/desert_small_house_1"
+]
+```
+
+**Savanna Villages:**
+```json
+"datapackStructures": [
+  "minecraft:village/savanna/town_centers/savanna_meeting_point_1"
+]
+```
+
+**Taiga Villages:**
+```json
+"datapackStructures": [
+  "minecraft:village/taiga/town_centers/taiga_meeting_point_1"
+]
+```
+
+**Snowy Villages:**
+```json
+"datapackStructures": [
+  "minecraft:village/snowy/town_centers/snowy_meeting_point_1"
+]
+```
+
+#### Other Structures
+
+**Pillager Outposts:**
+```json
+"datapackStructures": [
+  "minecraft:pillager_outpost/base_plates",
+  "minecraft:pillager_outpost/watchtower"
+]
+```
+
+**Ancient Cities:**
+```json
+"datapackStructures": [
+  "minecraft:ancient_city/city_center/city_center_1",
+  "minecraft:ancient_city/structures/barracks"
+]
+```
+
+**Bastions:**
+```json
+"datapackStructures": [
+  "minecraft:bastion/units/center_pieces/center_0",
+  "minecraft:bastion/treasure/bases/lava_basin"
+]
+```
+
+## Custom Dimension Types
+
+Configure dimension type properties through Iris dimension configurations.
+
+### Dimension Type Options
+
+Iris provides `IrisDimensionTypeOptions` for customizing dimension behavior.
+
+```json
+"dimensionTypeOptions": {
+  "hasSkylight": true,
+  "hasCeiling": false,
+  "ultraWarm": false,
+  "natural": true,
+  "piglinSafe": false,
+  "bedWorks": true,
+  "respawnAnchorWorks": false,
+  "hasRaids": true,
+  "coordinateScale": 1.0,
+  "ambientLight": 0.0
+}
+```
+
+### Option Descriptions
+
+**`hasSkylight`** (default: `true`)
+Whether the dimension has a sky and skylight.
+
+```json
+"hasSkylight": false
+```
+
+Set to `false` for cave-like dimensions.
+
+**`hasCeiling`** (default: `false`)
+Whether the dimension has a bedrock ceiling (like the Nether).
+
+```json
+"hasCeiling": true
+```
+
+**`ultraWarm`** (default: `false`)
+If true, water evaporates and sponges dry (like the Nether).
+
+```json
+"ultraWarm": true
+```
+
+**`natural`** (default: `true`)
+Whether the dimension is "natural" (affects mob spawning, compasses, etc.).
+
+```json
+"natural": false
+```
+
+**`piglinSafe`** (default: `false`)
+If true, piglins don't zombify in this dimension.
+
+```json
+"piglinSafe": true
+```
+
+**`bedWorks`** (default: `true`)
+Whether beds can be used to sleep.
+
+```json
+"bedWorks": false
+```
+
+Set to `false` for Nether-like dimensions where beds explode.
+
+**`respawnAnchorWorks`** (default: `false`)
+Whether respawn anchors function in this dimension.
+
+```json
+"respawnAnchorWorks": true
+```
+
+**`hasRaids`** (default: `true`)
+Whether raids can occur in this dimension.
+
+```json
+"hasRaids": false
+```
+
+**`coordinateScale`** (default: `1.0`)
+Coordinate scaling factor (8.0 for Nether = 8 blocks traveled per block).
+
+```json
+"coordinateScale": 8.0
+```
+
+**`ambientLight`** (default: `0.0`, range: `0.0-1.0`)
+Base ambient light level (0.1 = slight glow, 0.0 = pitch black).
+
+```json
+"ambientLight": 0.1
+```
+
+### Dimension Type Presets
+
+Iris provides three base dimension types:
+
+#### Overworld
+
+```json
+"dimensionType": "OVERWORLD",
+"dimensionTypeOptions": {
+  "hasSkylight": true,
+  "hasCeiling": false,
+  "ultraWarm": false,
+  "natural": true,
+  "bedWorks": true,
+  "coordinateScale": 1.0
+}
+```
+
+#### Nether
+
+```json
+"dimensionType": "NETHER",
+"dimensionTypeOptions": {
+  "hasSkylight": false,
+  "hasCeiling": true,
+  "ultraWarm": true,
+  "piglinSafe": true,
+  "bedWorks": false,
+  "respawnAnchorWorks": true,
+  "coordinateScale": 8.0,
+  "ambientLight": 0.1
+}
+```
+
+#### End
+
+```json
+"dimensionType": "END",
+"dimensionTypeOptions": {
+  "hasSkylight": false,
+  "hasCeiling": false,
+  "ultraWarm": false,
+  "natural": false,
+  "bedWorks": false,
+  "respawnAnchorWorks": false,
+  "coordinateScale": 1.0
+}
+```
+
+## Data Fixers
+
+Iris uses data fixers to ensure compatibility across Minecraft versions.
+
+### How Data Fixers Work
+
+Data fixers automatically:
+1. Convert dimension type configurations to the correct format for your Minecraft version
+2. Apply version-specific fixes to custom biome data
+3. Handle pack format changes between updates
+
+### Accessing Data Fixers
+
+Data fixers are handled automatically by Iris. You don't need to manually configure them.
+
+The system:
+- Detects your Minecraft version
+- Selects the appropriate data fixer
+- Applies fixes during dimension generation
+
+### Custom Biome Fixes
+
+Data fixers also handle custom biome JSON conversion:
+
+```java
+JSONObject fixedBiome = dataFixer.fixCustomBiome(biome, originalJSON);
+```
+
+This ensures custom biomes work correctly regardless of Minecraft version.
+
+## Complete Examples
+
+### Vanilla Village Dimension
+
+```json
+{
+  "name": "Village World",
+  "dimensionType": "OVERWORLD",
+  "dimensionTypeOptions": {
+    "hasSkylight": true,
+    "natural": true,
+    "bedWorks": true,
+    "hasRaids": true
+  },
+  "regions": [
+    {
+      "biomes": ["plains"],
+      "jigsawStructures": [
+        {
+          "datapackStructures": [
+            "minecraft:village/plains/town_centers/plains_meeting_point_1",
+            "minecraft:village/plains/town_centers/plains_meeting_point_2"
+          ],
+          "rarity": 100,
+          "shuffle": 5
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Nether-Like Custom Dimension
+
+```json
+{
+  "name": "Volcanic Realm",
+  "dimensionType": "NETHER",
+  "dimensionTypeOptions": {
+    "hasSkylight": false,
+    "hasCeiling": true,
+    "ultraWarm": true,
+    "natural": false,
+    "piglinSafe": true,
+    "bedWorks": false,
+    "respawnAnchorWorks": true,
+    "coordinateScale": 8.0,
+    "ambientLight": 0.15
+  },
+  "fluidHeight": 32
+}
+```
+
+### Cave Dimension with Ancient Cities
+
+```json
+{
+  "name": "Deep Dark",
+  "dimensionType": "OVERWORLD",
+  "dimensionTypeOptions": {
+    "hasSkylight": false,
+    "hasCeiling": true,
+    "natural": false,
+    "ambientLight": 0.05
+  },
+  "regions": [
+    {
+      "biomes": ["deep-dark-custom"],
+      "jigsawStructures": [
+        {
+          "datapackStructures": [
+            "minecraft:ancient_city/city_center/city_center_1",
+            "minecraft:ancient_city/city_center/city_center_2"
+          ],
+          "rarity": 500
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Version Compatibility
+
+When updating Minecraft versions:
+
+1. **Structure paths may change**: Verify structure IDs still exist in new versions
+2. **Pack format updates automatically**: No manual configuration needed
+3. **Dimension options may expand**: New Minecraft versions may add dimension type properties
+4. **Data fixers handle conversions**: Existing dimensions update automatically
+
+<Warning>
+Always backup your worlds before updating Minecraft versions. While data fixers handle most conversions, major updates can introduce breaking changes.
+</Warning>
+
+## Troubleshooting
+
+### Structures not generating
+
+Verify:
+- Structure path is correct for your Minecraft version
+- Pack format matches your server version
+- Structure exists in vanilla Minecraft data packs
+
+### Dimension behaves incorrectly
+
+Check:
+- `dimensionType` is set correctly (OVERWORLD, NETHER, or END)
+- `dimensionTypeOptions` values are appropriate
+- No conflicting options (e.g., `bedWorks: true` with `ultraWarm: true`)
+
+### Version update errors
+
+If errors occur after updating:
+1. Check server logs for data fixer errors
+2. Verify all structure IDs still exist
+3. Review dimension type options for deprecated properties
+4. Consider regenerating the dimension with updated configuration
+
+## Advanced Integration
+
+For pack developers:
+
+### Custom Data Packs
+
+You can add custom data packs to your server's `datapacks` folder and reference them:
+
+```json
+"datapackStructures": [
+  "mypack:structures/custom_castle"
+]
+```
+
+### Mixing Iris and Vanilla
+
+Combine Iris structures with vanilla ones:
+
+```json
+"jigsawStructures": [
+  {
+    "pieces": ["my-custom-village"],
+    "maxDepth": 8
+  },
+  {
+    "datapackStructures": [
+      "minecraft:village/plains/houses/plains_small_house_1"
+    ]
+  }
+]
+```
+
+This allows seamless integration between custom and vanilla content.

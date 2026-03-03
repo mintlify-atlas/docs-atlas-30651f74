@@ -1,0 +1,135 @@
+---
+title: IrisLootEvent
+description: Event fired before loot tables are populated in containers
+---
+
+## Overview
+
+`IrisLootEvent` is fired when Iris is about to populate a container with loot. This event allows you to modify or add custom loot tables before the inventory is filled.
+
+## Event Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `engine` | `Engine` | The Iris engine instance |
+| `block` | `Block` | The block containing the inventory (chest, barrel, etc.) |
+| `slot` | `InventorySlotType` | The type of inventory slot being filled |
+| `tables` | `KList<IrisLootTable>` | Mutable list of loot tables to be used |
+
+## When It Fires
+
+This event fires when:
+- A container (chest, barrel, shulker box, etc.) is generated in the world
+- Iris is about to populate the container with loot based on the dimension's loot tables
+- Before the actual items are placed in the inventory
+
+## Important Notes
+
+- The `tables` list is **mutable** - you can add, remove, or modify loot tables
+- Cannot be cancelled directly
+- Integrates with Bukkit's `LootGenerateEvent` for compatibility with other plugins
+
+## Event Handler Examples
+
+### Basic Loot Modification
+
+```java
+import com.volmit.iris.core.events.IrisLootEvent;
+import com.volmit.iris.engine.object.IrisLootTable;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+
+public class LootListener implements Listener {
+    
+    @EventHandler
+    public void onLootGenerate(IrisLootEvent event) {
+        Block block = event.getBlock();
+        Engine engine = event.getEngine();
+        
+        // Check the block type
+        if (block.getType() == Material.CHEST) {
+            // Add custom loot table
+            IrisLootTable customTable = engine.getData()
+                .getLootLoader()
+                .load("custom-loot");
+            
+            if (customTable != null) {
+                event.getTables().add(customTable);
+            }
+        }
+    }
+}
+```
+
+### Conditional Loot by Location
+
+```java
+@EventHandler
+public void onLootGenerate(IrisLootEvent event) {
+    Block block = event.getBlock();
+    Location loc = block.getLocation();
+    
+    // Add rare loot in specific biomes or regions
+    String biome = event.getEngine().getBiome(loc.getBlockX(), loc.getBlockZ()).getName();
+    
+    if (biome.equals("volcanic-wastes")) {
+        IrisLootTable rareLoot = event.getEngine()
+            .getData()
+            .getLootLoader()
+            .load("volcanic-rare-loot");
+        
+        event.getTables().add(rareLoot);
+    }
+}
+```
+
+### Removing Default Loot
+
+```java
+@EventHandler
+public void onLootGenerate(IrisLootEvent event) {
+    // Clear all default loot tables
+    event.getTables().clear();
+    
+    // Add only your custom loot
+    IrisLootTable customTable = event.getEngine()
+        .getData()
+        .getLootLoader()
+        .load("exclusive-loot");
+    
+    event.getTables().add(customTable);
+}
+```
+
+## Bukkit Integration
+
+Iris also fires Bukkit's `LootGenerateEvent` for compatibility. You can listen to both events:
+
+```java
+import org.bukkit.event.world.LootGenerateEvent;
+
+@EventHandler
+public void onBukkitLoot(LootGenerateEvent event) {
+    // This fires after IrisLootEvent
+    // You can modify the final item list here
+    List<ItemStack> loot = event.getLoot();
+    
+    // Add bonus items
+    loot.add(new ItemStack(Material.DIAMOND, 3));
+}
+```
+
+## Registering the Event
+
+Register your listener in your plugin's `onEnable()` method:
+
+```java
+@Override
+public void onEnable() {
+    getServer().getPluginManager().registerEvents(new LootListener(), this);
+}
+```
+
+## Source Code Reference
+
+Location: `core/src/main/java/com/volmit/iris/core/events/IrisLootEvent.java`

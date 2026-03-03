@@ -1,0 +1,297 @@
+---
+title: Pregeneration
+description: Configure and manage chunk pregeneration for optimal server performance
+---
+
+## Overview
+
+Pregeneration allows you to generate chunks before players explore them, reducing lag and improving server performance. Iris provides a flexible pregeneration system with multiple methods and configuration options.
+
+## PregenTask Configuration
+
+### Creating a PregenTask
+
+The `PregenTask` class uses a builder pattern to configure the pregeneration area:
+
+```java
+import com.volmit.iris.core.pregenerator.PregenTask;
+import com.volmit.iris.util.math.Position2;
+
+PregenTask task = PregenTask.builder()
+    .center(new Position2(0, 0))
+    .radiusX(2000)
+    .radiusZ(2000)
+    .gui(true)
+    .build();
+```
+
+### PregenTask Parameters
+
+<ParamField path="center" type="Position2" default="Position2(0, 0)">
+  The center point of the pregeneration area in block coordinates
+</ParamField>
+
+<ParamField path="radiusX" type="int" default="1">
+  The radius in blocks along the X axis
+</ParamField>
+
+<ParamField path="radiusZ" type="int" default="1">
+  The radius in blocks along the Z axis
+</ParamField>
+
+<ParamField path="gui" type="boolean" default="false">
+  Enable GUI progress display for the pregeneration job
+</ParamField>
+
+## Starting Pregeneration
+
+### Using IrisToolbelt
+
+The `IrisToolbelt.pregenerate()` method provides several overloads for different use cases:
+
+#### Pregenerate with Custom Method
+
+```java
+import com.volmit.iris.core.gui.PregeneratorJob;
+import com.volmit.iris.core.pregenerator.PregeneratorMethod;
+import com.volmit.iris.core.pregenerator.methods.HybridPregenMethod;
+import com.volmit.iris.engine.framework.Engine;
+
+PregeneratorMethod method = new HybridPregenMethod(world, threadCount);
+PregeneratorJob job = IrisToolbelt.pregenerate(task, method, engine);
+
+job.onProgress(progress -> {
+    System.out.println("Progress: " + (progress * 100) + "%");
+});
+
+job.whenDone(() -> {
+    System.out.println("Pregeneration complete!");
+});
+```
+
+#### Pregenerate with Iris World
+
+```java
+import com.volmit.iris.engine.platform.PlatformChunkGenerator;
+
+PlatformChunkGenerator generator = IrisToolbelt.access(world);
+PregeneratorJob job = IrisToolbelt.pregenerate(task, generator);
+```
+
+#### Pregenerate Any World
+
+```java
+import org.bukkit.World;
+
+// Works with both Iris and non-Iris worlds
+World world = Bukkit.getWorld("myworld");
+PregeneratorJob job = IrisToolbelt.pregenerate(task, world);
+```
+
+## Pregeneration Methods
+
+Iris supports multiple pregeneration methods optimized for different scenarios:
+
+### HybridPregenMethod
+
+The default method that automatically selects the best approach:
+
+```java
+import com.volmit.iris.core.pregenerator.methods.HybridPregenMethod;
+import com.volmit.iris.core.IrisSettings;
+
+int threads = IrisSettings.getThreadCount(
+    IrisSettings.get().getConcurrency().getParallelism()
+);
+
+HybridPregenMethod method = new HybridPregenMethod(world, threads);
+```
+
+### CachedPregenMethod
+
+Wraps another method with caching for improved performance:
+
+```java
+import com.volmit.iris.core.pregenerator.methods.CachedPregenMethod;
+
+boolean useCache = IrisSettings.get().getPregen().useCacheByDefault;
+
+if (useCache && engine != null) {
+    PregeneratorMethod cached = new CachedPregenMethod(
+        baseMethod, 
+        engine.getWorld().name()
+    );
+}
+```
+
+### Method Selection Logic
+
+Iris automatically selects the appropriate method:
+
+<Steps>
+  <Step title="Check World Type">
+    Determine if the world uses an Iris generator
+  </Step>
+  
+  <Step title="Select Base Method">
+    Use HybridPregenMethod for optimal performance
+  </Step>
+  
+  <Step title="Apply Caching">
+    Wrap with CachedPregenMethod if caching is enabled
+  </Step>
+</Steps>
+
+## PregeneratorJob API
+
+The `PregeneratorJob` class provides methods to monitor and control pregeneration:
+
+### Progress Tracking
+
+```java
+job.onProgress(progress -> {
+    // progress is a double from 0.0 to 1.0
+    int percentage = (int) (progress * 100);
+    player.sendMessage("Pregenerating: " + percentage + "%");
+});
+```
+
+### Completion Callback
+
+```java
+job.whenDone(() -> {
+    Bukkit.broadcastMessage("World pregeneration complete!");
+    // Perform post-generation tasks
+});
+```
+
+### Combined Example
+
+```java
+PregeneratorJob job = IrisToolbelt.pregenerate(task, world);
+
+job.onProgress(progress -> {
+    if (sender.isPlayer()) {
+        sender.sendProgress(progress, "Pregenerating");
+    } else {
+        int chunksLeft = (int) ((1.0 - progress) * totalChunks);
+        sender.sendMessage("Pregenerating " + 
+            Form.pc(progress) + " (" + chunksLeft + " Left)");
+    }
+});
+
+job.whenDone(() -> {
+    sender.sendMessage("Pregeneration finished!");
+});
+```
+
+## Integration with World Creation
+
+Pregeneration can be integrated directly into world creation:
+
+```java
+import com.volmit.iris.core.tools.IrisToolbelt;
+
+PregenTask pregen = PregenTask.builder()
+    .center(new Position2(0, 0))
+    .radiusX(5000)
+    .radiusZ(5000)
+    .build();
+
+World world = IrisToolbelt.createWorld()
+    .name("pregenworld")
+    .dimension("overworld")
+    .pregen(pregen)  // Pregenerate during creation
+    .sender(sender)
+    .create();
+```
+
+### Creation with Pregeneration Flow
+
+<Steps>
+  <Step title="World Creation Starts">
+    Iris initializes the world and generator
+  </Step>
+  
+  <Step title="Spawn Chunks Generate">
+    Initial spawn area is generated first
+  </Step>
+  
+  <Step title="Pregeneration Begins">
+    If a PregenTask is configured, it starts automatically
+  </Step>
+  
+  <Step title="Progress Updates">
+    The sender receives real-time progress updates
+  </Step>
+  
+  <Step title="Completion">
+    World is fully created and pregenerated
+  </Step>
+</Steps>
+
+## PregeneratorMethod Interface
+
+For advanced use cases, you can implement custom pregeneration methods:
+
+```java
+public interface PregeneratorMethod {
+    void init();  // Setup before generation
+    void close(); // Cleanup after generation
+    void save();  // Periodic save during generation
+    
+    boolean supportsRegions(int x, int z, PregenListener listener);
+    String getMethod(int x, int z);
+    
+    void generateRegion(int x, int z, PregenListener listener);
+    void generateChunk(int x, int z, PregenListener listener);
+    
+    Mantle getMantle();
+}
+```
+
+### Method Lifecycle
+
+1. **init()** - Called once before generation starts
+2. **generateRegion() / generateChunk()** - Called for each region/chunk
+3. **save()** - Called periodically during generation
+4. **close()** - Called when generation completes
+
+## Performance Considerations
+
+### Thread Count
+
+Configure thread count based on server hardware:
+
+```java
+int threads = IrisSettings.getThreadCount(
+    IrisSettings.get().getConcurrency().getParallelism()
+);
+```
+
+### Cache Settings
+
+Enable caching for improved performance:
+
+```java
+boolean cached = IrisSettings.get().getPregen().useCacheByDefault;
+PregeneratorJob job = IrisToolbelt.pregenerate(task, method, engine, cached);
+```
+
+<Tip>
+  For large pregeneration tasks, enable caching and adjust thread count based on available CPU cores. Monitor server TPS during pregeneration and reduce threads if necessary.
+</Tip>
+
+## Region vs Chunk Generation
+
+Iris pregenerates in two modes:
+
+- **Region Generation**: Generates 32x32 chunk regions (512x512 blocks)
+- **Chunk Generation**: Generates individual 16x16 block chunks
+
+The pregeneration system automatically uses region generation when supported, falling back to chunk-by-chunk generation when necessary.
+
+## Related APIs
+
+- [Creating Worlds](/generation/creating-worlds) - Integrate pregeneration with world creation
+- [Studio Mode](/generation/studio-mode) - Test dimension configurations before pregeneration

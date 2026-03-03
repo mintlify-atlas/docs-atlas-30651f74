@@ -1,0 +1,754 @@
+---
+title: Entity Spawners Guide
+description: Configure custom entity spawning in your Iris dimensions, regions, and biomes
+---
+
+Entity spawners control how mobs and creatures populate your Iris worlds. Unlike vanilla spawning, Iris spawners are persistent and continually replenish entities.
+
+## What is an Entity Spawner?
+
+An Iris spawner defines:
+
+- What entities spawn
+- Where they spawn (biome types, light levels, time)
+- How often they spawn (rates, cooldowns)
+- Initial spawns vs. continuous spawning
+
+Spawners can be referenced by dimensions, regions, and biomes.
+
+## Creating a Spawner
+
+<Steps>
+  <Step title="Create the JSON file">
+    Create a file in `spawners/` folder:
+    ```json
+    {
+      "spawns": [
+        {
+          "entity": "zombie",
+          "minAmount": 1,
+          "maxAmount": 3,
+          "chance": 0.5
+        },
+        {
+          "entity": "skeleton",
+          "minAmount": 1,
+          "maxAmount": 2,
+          "chance": 0.3
+        }
+      ],
+      "maxEntitiesPerChunk": 8,
+      "allowedLightLevels": {
+        "min": 0,
+        "max": 7
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Reference in configs">
+    Add to dimension, region, or biome:
+    ```json
+    {
+      "entitySpawners": ["hostile-mobs", "passive-animals"]
+    }
+    ```
+  </Step>
+  
+  <Step title="Test in-game">
+    Explore your world and observe entity spawning behavior.
+  </Step>
+</Steps>
+
+## Spawner Configuration
+
+### Basic Properties
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `spawns` | Spawn[] | - | List of entity spawns (required) |
+| `initialSpawns` | Spawn[] | [] | Spawns that happen once per chunk |
+| `maxEntitiesPerChunk` | Integer | 1 | Max entities before spawner pauses |
+| `energyMultiplier` | Double | 1.0 | Energy cost multiplier |
+
+### Spawn Groups
+
+**Control where spawners activate:**
+
+```json
+{
+  "group": "NORMAL"
+}
+```
+
+Options:
+- `NORMAL`: Land biomes only
+- `UNDERWATER`: Ocean biomes only
+- `BEACH`: Shore biomes only
+- `CAVE`: Cave areas
+
+### Time Restrictions
+
+```json
+{
+  "timeBlock": {
+    "minTime": 13000,
+    "maxTime": 23000
+  }
+}
+```
+
+Only spawn during these Minecraft times (0-24000):
+- Day: 0-12000
+- Sunset: 12000-13000
+- Night: 13000-23000
+- Sunrise: 23000-24000
+
+### Weather Restrictions
+
+```json
+{
+  "weather": "RAIN"
+}
+```
+
+Options:
+- `ANY`: Any weather
+- `CLEAR`: Clear weather only
+- `RAIN`: Rain/snow only
+- `THUNDER`: Thunderstorm only
+
+### Light Level Restrictions
+
+```json
+{
+  "allowedLightLevels": {
+    "min": 0,
+    "max": 7
+  }
+}
+```
+
+Only spawn in light levels 0-15 (0 = dark, 15 = bright).
+
+### Spawn Rates
+
+**Global rate limit:**
+
+```json
+{
+  "maximumRate": {
+    "interval": 200,
+    "count": 5
+  }
+}
+```
+
+- `interval`: Ticks between spawn attempts
+- `count`: Max spawns per interval
+
+**Per-chunk rate limit:**
+
+```json
+{
+  "maximumRatePerChunk": {
+    "interval": 600,
+    "count": 2
+  }
+}
+```
+
+## Entity Spawn Configuration
+
+### Basic Entity Spawn
+
+```json
+{
+  "entity": "cow",
+  "minAmount": 2,
+  "maxAmount": 4,
+  "chance": 0.5
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `entity` | String | Entity type (required) |
+| `minAmount` | Integer | Minimum entities to spawn |
+| `maxAmount` | Integer | Maximum entities to spawn |
+| `chance` | Double | Spawn probability (0-1) |
+
+### Entity Types
+
+Use Minecraft entity IDs:
+
+**Passive:**
+- `cow`, `sheep`, `pig`, `chicken`
+- `horse`, `donkey`, `mule`, `llama`
+- `cat`, `ocelot`, `parrot`, `wolf`
+- `rabbit`, `fox`, `bee`, `turtle`
+- `villager`, `wandering_trader`
+
+**Hostile:**
+- `zombie`, `skeleton`, `creeper`, `spider`
+- `enderman`, `witch`, `slime`
+- `phantom`, `drowned`, `husk`, `stray`
+- `pillager`, `vindicator`, `evoker`
+
+**Nether:**
+- `zombified_piglin`, `piglin`, `hoglin`
+- `blaze`, `ghast`, `magma_cube`
+- `wither_skeleton`, `strider`
+
+**Aquatic:**
+- `cod`, `salmon`, `tropical_fish`, `pufferfish`
+- `squid`, `glow_squid`, `dolphin`
+- `guardian`, `elder_guardian`
+
+### Custom Entity Data
+
+**Baby entities:**
+
+```json
+{
+  "entity": "zombie",
+  "baby": true
+}
+```
+
+**Named entities:**
+
+```json
+{
+  "entity": "sheep",
+  "customName": "Fluffy"
+}
+```
+
+**Villager professions:**
+
+```json
+{
+  "entity": "villager",
+  "profession": "farmer"
+}
+```
+
+## Example Spawners
+
+### Passive Animals
+
+```json
+{
+  "spawns": [
+    {
+      "entity": "cow",
+      "minAmount": 2,
+      "maxAmount": 4,
+      "chance": 0.4
+    },
+    {
+      "entity": "sheep",
+      "minAmount": 2,
+      "maxAmount": 4,
+      "chance": 0.4
+    },
+    {
+      "entity": "pig",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "chance": 0.3
+    },
+    {
+      "entity": "chicken",
+      "minAmount": 2,
+      "maxAmount": 6,
+      "chance": 0.5
+    }
+  ],
+  "initialSpawns": [
+    {
+      "entity": "cow",
+      "minAmount": 2,
+      "maxAmount": 4,
+      "chance": 1.0
+    },
+    {
+      "entity": "sheep",
+      "minAmount": 2,
+      "maxAmount": 4,
+      "chance": 1.0
+    }
+  ],
+  "group": "NORMAL",
+  "maxEntitiesPerChunk": 12,
+  "allowedLightLevels": {
+    "min": 0,
+    "max": 15
+  },
+  "maximumRate": {
+    "interval": 400,
+    "count": 3
+  }
+}
+```
+
+### Hostile Mobs
+
+```json
+{
+  "spawns": [
+    {
+      "entity": "zombie",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "chance": 0.5
+    },
+    {
+      "entity": "skeleton",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.4
+    },
+    {
+      "entity": "creeper",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.3
+    },
+    {
+      "entity": "spider",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.3
+    },
+    {
+      "entity": "enderman",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "chance": 0.1
+    }
+  ],
+  "group": "NORMAL",
+  "maxEntitiesPerChunk": 8,
+  "allowedLightLevels": {
+    "min": 0,
+    "max": 7
+  },
+  "timeBlock": {
+    "minTime": 13000,
+    "maxTime": 23000
+  },
+  "maximumRate": {
+    "interval": 300,
+    "count": 2
+  }
+}
+```
+
+### Ocean Life
+
+```json
+{
+  "spawns": [
+    {
+      "entity": "cod",
+      "minAmount": 3,
+      "maxAmount": 8,
+      "chance": 0.6
+    },
+    {
+      "entity": "salmon",
+      "minAmount": 2,
+      "maxAmount": 5,
+      "chance": 0.4
+    },
+    {
+      "entity": "tropical_fish",
+      "minAmount": 4,
+      "maxAmount": 12,
+      "chance": 0.3
+    },
+    {
+      "entity": "squid",
+      "minAmount": 1,
+      "maxAmount": 4,
+      "chance": 0.4
+    },
+    {
+      "entity": "dolphin",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.1
+    }
+  ],
+  "group": "UNDERWATER",
+  "maxEntitiesPerChunk": 15,
+  "allowedLightLevels": {
+    "min": 0,
+    "max": 15
+  },
+  "maximumRatePerChunk": {
+    "interval": 600,
+    "count": 5
+  }
+}
+```
+
+### Desert Creatures
+
+```json
+{
+  "spawns": [
+    {
+      "entity": "rabbit",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "chance": 0.3
+    },
+    {
+      "entity": "husk",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.4
+    }
+  ],
+  "initialSpawns": [
+    {
+      "entity": "rabbit",
+      "minAmount": 2,
+      "maxAmount": 4,
+      "chance": 1.0
+    }
+  ],
+  "group": "NORMAL",
+  "maxEntitiesPerChunk": 6,
+  "allowedLightLevels": {
+    "min": 0,
+    "max": 15
+  }
+}
+```
+
+### Cave Dwellers
+
+```json
+{
+  "spawns": [
+    {
+      "entity": "zombie",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.5
+    },
+    {
+      "entity": "skeleton",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.4
+    },
+    {
+      "entity": "spider",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "chance": 0.3
+    },
+    {
+      "entity": "bat",
+      "minAmount": 2,
+      "maxAmount": 5,
+      "chance": 0.4
+    }
+  ],
+  "group": "CAVE",
+  "maxEntitiesPerChunk": 10,
+  "allowedLightLevels": {
+    "min": 0,
+    "max": 7
+  },
+  "maximumRate": {
+    "interval": 400,
+    "count": 3
+  }
+}
+```
+
+### Nether Spawner
+
+```json
+{
+  "spawns": [
+    {
+      "entity": "zombified_piglin",
+      "minAmount": 2,
+      "maxAmount": 4,
+      "chance": 0.5
+    },
+    {
+      "entity": "piglin",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "chance": 0.3
+    },
+    {
+      "entity": "hoglin",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.2
+    },
+    {
+      "entity": "magma_cube",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.3
+    },
+    {
+      "entity": "blaze",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "chance": 0.1
+    }
+  ],
+  "maxEntitiesPerChunk": 10,
+  "allowedLightLevels": {
+    "min": 0,
+    "max": 15
+  },
+  "maximumRate": {
+    "interval": 300,
+    "count": 3
+  }
+}
+```
+
+### Jungle Wildlife
+
+```json
+{
+  "spawns": [
+    {
+      "entity": "parrot",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "chance": 0.4
+    },
+    {
+      "entity": "ocelot",
+      "minAmount": 1,
+      "maxAmount": 1,
+      "chance": 0.2
+    },
+    {
+      "entity": "panda",
+      "minAmount": 1,
+      "maxAmount": 2,
+      "chance": 0.15
+    },
+    {
+      "entity": "chicken",
+      "minAmount": 2,
+      "maxAmount": 4,
+      "chance": 0.3
+    }
+  ],
+  "initialSpawns": [
+    {
+      "entity": "parrot",
+      "minAmount": 2,
+      "maxAmount": 4,
+      "chance": 1.0
+    }
+  ],
+  "group": "NORMAL",
+  "maxEntitiesPerChunk": 8,
+  "allowedLightLevels": {
+    "min": 0,
+    "max": 15
+  }
+}
+```
+
+### Night Phantoms
+
+```json
+{
+  "spawns": [
+    {
+      "entity": "phantom",
+      "minAmount": 1,
+      "maxAmount": 3,
+      "chance": 0.3
+    }
+  ],
+  "maxEntitiesPerChunk": 4,
+  "timeBlock": {
+    "minTime": 13000,
+    "maxTime": 23000
+  },
+  "allowedLightLevels": {
+    "min": 0,
+    "max": 15
+  },
+  "maximumRate": {
+    "interval": 1200,
+    "count": 1
+  }
+}
+```
+
+## Energy System
+
+### How Energy Works
+
+Spawners consume "energy" to prevent infinite spawning:
+
+1. Dimension has max energy pool (default: 1000)
+2. Each spawn attempt costs energy
+3. Energy regenerates over time
+4. When energy is depleted, spawning pauses
+
+### Energy Configuration
+
+**In dimensions:**
+
+```json
+{
+  "infiniteEnergy": false,
+  "maximumEnergy": 1000
+}
+```
+
+**In spawners:**
+
+```json
+{
+  "energyMultiplier": 1.5
+}
+```
+
+Higher multiplier = more energy cost = less frequent spawning.
+
+### Infinite Energy
+
+```json
+{
+  "infiniteEnergy": true
+}
+```
+
+Disables energy system. **Not recommended** - can cause lag from excessive spawning.
+
+## Spawner References
+
+### In Dimensions
+
+```json
+{
+  "entitySpawners": ["passive-animals", "hostile-mobs"]
+}
+```
+
+### In Regions
+
+```json
+{
+  "entitySpawners": ["desert-creatures", "common-hostiles"]
+}
+```
+
+### In Biomes
+
+```json
+{
+  "entitySpawners": ["jungle-wildlife", "tropical-fish"]
+}
+```
+
+## Tips & Best Practices
+
+### Balance Entity Counts
+
+- Passive mobs: 8-15 per chunk
+- Hostile mobs: 5-10 per chunk
+- Rare creatures: 1-3 per chunk
+
+### Use Initial Spawns
+
+Add `initialSpawns` for immediate population:
+
+```json
+{
+  "initialSpawns": [
+    {
+      "entity": "cow",
+      "minAmount": 4,
+      "maxAmount": 8,
+      "chance": 1.0
+    }
+  ]
+}
+```
+
+### Layer Multiple Spawners
+
+Combine spawners for variety:
+
+```json
+{
+  "entitySpawners": [
+    "base-animals",
+    "rare-wildlife",
+    "ambient-creatures"
+  ]
+}
+```
+
+### Match to Environment
+
+- **Light levels**: Dark for hostiles, any for passive
+- **Groups**: Underwater for fish, normal for land
+- **Time**: Night for hostiles, any for passive
+- **Weather**: Thunder for special events
+
+### Prevent Lag
+
+- Use reasonable `maxEntitiesPerChunk`
+- Set appropriate spawn rates
+- Don't use `infiniteEnergy` unless testing
+- Consider `energyMultiplier` for balance
+
+<Accordion title="FAQ">
+  <AccordionGroup>
+    <Accordion title="Why aren't entities spawning?">
+      Check:
+      - Light levels match `allowedLightLevels`
+      - Time is within `timeBlock` range
+      - Weather matches `weather` setting
+      - Biome type matches `group`
+      - Energy isn't depleted (check `infiniteEnergy`)
+      - `maxEntitiesPerChunk` not exceeded
+    </Accordion>
+    
+    <Accordion title="What's the difference between spawns and initialSpawns?">
+      `initialSpawns` execute once when a chunk is first generated. `spawns` continue to replenish entities over time.
+    </Accordion>
+    
+    <Accordion title="Can I spawn modded entities?">
+      Yes, if the mod properly registers entities with Bukkit/Spigot. Use the entity's namespaced ID.
+    </Accordion>
+    
+    <Accordion title="How do I make boss mobs spawn?">
+      Use very low `chance` (0.001-0.01), high `energyMultiplier`, and strict conditions (time, weather, light).
+    </Accordion>
+    
+    <Accordion title="Why do I have too many entities?">
+      Lower `maxEntitiesPerChunk`, reduce `chance` values, increase spawn `interval`, or raise `energyMultiplier`.
+    </Accordion>
+  </AccordionGroup>
+</Accordion>
+
+## Next Steps
+
+- Configure [Biomes](/biomes-guide) for appropriate spawner groups
+- Create [Loot Tables](/loot-tables) for mob drops
+- Design [Regions](/regions-guide) with themed wildlife

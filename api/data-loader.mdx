@@ -1,0 +1,335 @@
+---
+title: Data Loader
+description: Load and manage Iris dimension resources with IrisData
+---
+
+## Overview
+
+The `IrisData` class manages loading and caching of all dimension resources including biomes, regions, objects, structures, and more.
+
+## Getting IrisData
+
+```java
+import com.volmit.iris.core.loader.IrisData;
+import com.volmit.iris.engine.framework.Engine;
+import java.io.File;
+
+// From engine
+Engine engine = IrisToolbelt.access(world).getEngine();
+IrisData data = engine.getData();
+
+// From dimension folder
+File packFolder = new File("Iris/packs/overworld");
+IrisData data = IrisData.get(packFolder);
+```
+
+## Resource Loaders
+
+Location: `core/src/main/java/com/volmit/iris/core/loader/IrisData.java`
+
+Each loader provides access to a specific resource type:
+
+### Biome Loader
+
+<ParamField path="getBiomeLoader()" type="ResourceLoader<IrisBiome>">
+  Loads biome configurations
+  
+  ```java
+  IrisBiome plains = data.getBiomeLoader().load("plains");
+  System.out.println("Biome: " + plains.getName());
+  ```
+</ParamField>
+
+### Region Loader
+
+<ParamField path="getRegionLoader()" type="ResourceLoader<IrisRegion>">
+  Loads region configurations
+  
+  ```java
+  IrisRegion region = data.getRegionLoader().load("tropical");
+  ```
+</ParamField>
+
+### Dimension Loader
+
+<ParamField path="getDimensionLoader()" type="ResourceLoader<IrisDimension>">
+  Loads dimension configurations
+  
+  ```java
+  IrisDimension dimension = data.getDimensionLoader().load("overworld");
+  ```
+</ParamField>
+
+### Object Loader
+
+<ParamField path="getObjectLoader()" type="ResourceLoader<IrisObject>">
+  Loads structure objects (.iob files)
+  
+  ```java
+  IrisObject tree = data.getObjectLoader().load("trees/oak");
+  ```
+</ParamField>
+
+### Structure Loaders
+
+<ParamField path="getJigsawStructureLoader()" type="ResourceLoader<IrisJigsawStructure>">
+  Loads jigsaw structure definitions
+</ParamField>
+
+<ParamField path="getJigsawPoolLoader()" type="ResourceLoader<IrisJigsawPool>">
+  Loads jigsaw template pools
+</ParamField>
+
+<ParamField path="getJigsawPieceLoader()" type="ResourceLoader<IrisJigsawPiece>">
+  Loads individual jigsaw pieces
+</ParamField>
+
+### Additional Loaders
+
+<ParamField path="getLootLoader()" type="ResourceLoader<IrisLootTable>">
+  Loads loot table definitions
+</ParamField>
+
+<ParamField path="getEntityLoader()" type="ResourceLoader<IrisEntity>">
+  Loads entity configurations
+</ParamField>
+
+<ParamField path="getSpawnerLoader()" type="ResourceLoader<IrisSpawner>">
+  Loads spawner configurations
+</ParamField>
+
+<ParamField path="getBlockLoader()" type="ResourceLoader<IrisBlockData>">
+  Loads custom block data
+</ParamField>
+
+<ParamField path="getCaveLoader()" type="ResourceLoader<IrisCave>">
+  Loads cave generation configs
+</ParamField>
+
+<ParamField path="getRavineLoader()" type="ResourceLoader<IrisRavine>">
+  Loads ravine generation configs
+</ParamField>
+
+## Static Utility Methods
+
+### Cross-Pack Loading
+
+Load resources from any pack, not just the current one:
+
+<ParamField path="loadAnyBiome(String, IrisData)" type="IrisBiome">
+  Searches all packs for a biome
+  
+  **Parameters:**
+  - `key` - Biome load key
+  - `nearest` - Starting pack (can be null)
+  
+  ```java
+  IrisBiome biome = IrisData.loadAnyBiome("desert", data);
+  ```
+</ParamField>
+
+<ParamField path="loadAnyObject(String, IrisData)" type="IrisObject">
+  Searches all packs for an object
+</ParamField>
+
+<ParamField path="loadAnyRegion(String, IrisData)" type="IrisRegion">
+  Searches all packs for a region
+</ParamField>
+
+<ParamField path="loadAnyDimension(String, IrisData)" type="IrisDimension">
+  Searches all packs for a dimension
+</ParamField>
+
+Additional `loadAny*` methods exist for all resource types.
+
+## Core Methods
+
+### Generic Loading
+
+<ParamField path="load(Class<T>, String, boolean)" type="T">
+  Generic method to load any resource type
+  
+  **Parameters:**
+  - `type` - Resource class (e.g., `IrisBiome.class`)
+  - `key` - Resource load key
+  - `warn` - Show warnings if not found
+  
+  **Returns:** Resource instance or null
+  
+  ```java
+  IrisBiome biome = data.load(IrisBiome.class, "plains", true);
+  ```
+</ParamField>
+
+### Loader Access
+
+<ParamField path="getLoader(Class<T>)" type="ResourceLoader<T>">
+  Gets the loader for a specific resource type
+  
+  ```java
+  ResourceLoader<IrisBiome> loader = data.getLoader(IrisBiome.class);
+  ```
+</ParamField>
+
+<ParamField path="getLoaders()" type="KMap<Class, ResourceLoader>">
+  Returns all registered resource loaders
+</ParamField>
+
+### Data Management
+
+<ParamField path="dump()" type="void">
+  Clears all cached resources
+  
+  ```java
+  data.dump();  // Clear cache
+  ```
+</ParamField>
+
+<ParamField path="clearLists()" type="void">
+  Clears cached resource lists
+</ParamField>
+
+<ParamField path="close()" type="void">
+  Closes the data loader and removes it from cache
+</ParamField>
+
+### Prefetch System
+
+<ParamField path="loadPrefetch(Engine)" type="void">
+  Loads frequently-used resources from cache to speed up startup
+  
+  ```java
+  data.loadPrefetch(engine);
+  ```
+</ParamField>
+
+<ParamField path="savePrefetch(Engine)" type="void">
+  Saves access patterns to optimize future loads
+</ParamField>
+
+### Environment
+
+<ParamField path="getEnvironment()" type="PackEnvironment">
+  Returns the script execution environment for this pack
+</ParamField>
+
+### Metadata
+
+<ParamField path="getDataFolder()" type="File">
+  Returns the root folder for this dimension pack
+</ParamField>
+
+<ParamField path="getId()" type="int">
+  Returns unique ID for this data loader instance
+</ParamField>
+
+<ParamField path="isClosed()" type="boolean">
+  Returns true if the loader has been closed
+</ParamField>
+
+## Usage Examples
+
+### Load All Resources
+
+```java
+public void loadDimensionResources(IrisData data) {
+    // Load biomes
+    List<IrisBiome> biomes = data.getBiomeLoader()
+        .loadAll()
+        .collect(Collectors.toList());
+    
+    // Load regions  
+    List<IrisRegion> regions = data.getRegionLoader()
+        .loadAll()
+        .collect(Collectors.toList());
+    
+    // Load objects
+    List<IrisObject> objects = data.getObjectLoader()
+        .loadAll()
+        .collect(Collectors.toList());
+        
+    System.out.println(String.format(
+        "Loaded %d biomes, %d regions, %d objects",
+        biomes.size(), regions.size(), objects.size()
+    ));
+}
+```
+
+### Search Across Packs
+
+```java
+public IrisBiome findBiomeAnywhere(String name) {
+    // Search current pack first
+    IrisBiome biome = IrisData.loadAnyBiome(name, null);
+    
+    if (biome != null) {
+        System.out.println("Found " + name + " in " + 
+            biome.getLoadFile().getParentFile().getName());
+    }
+    
+    return biome;
+}
+```
+
+### Cache Management
+
+```java
+public void optimizeMemory(Engine engine) {
+    IrisData data = engine.getData();
+    
+    // Save frequently-used resources
+    data.savePrefetch(engine);
+    
+    // Clear unused resources
+    data.dump();
+    
+    // Reload prefetch on next startup
+    data.loadPrefetch(engine);
+}
+```
+
+### Custom Resource Loading
+
+```java
+public void loadCustomResources(IrisData data) {
+    // Load specific loot table
+    IrisLootTable loot = data.getLootLoader().load("chests/dungeon");
+    
+    // Load cave configuration
+    IrisCave cave = data.getCaveLoader().load("limestone_caves");
+    
+    // Load entity spawner
+    IrisSpawner spawner = data.getSpawnerLoader().load("hostile_mobs");
+}
+```
+
+### List All Resources
+
+```java
+public void listAllBiomes(IrisData data) {
+    ResourceLoader<IrisBiome> loader = data.getBiomeLoader();
+    
+    // Get all biome keys
+    List<String> biomeKeys = loader.getPossibleKeys();
+    
+    System.out.println("Available biomes:");
+    for (String key : biomeKeys) {
+        IrisBiome biome = loader.load(key);
+        System.out.println("  - " + key + ": " + biome.getName());
+    }
+}
+```
+
+## Resource Caching
+
+IrisData automatically caches loaded resources for performance:
+
+- **First Load**: Reads from disk, parses JSON, caches result
+- **Subsequent Loads**: Returns cached instance
+- **Cache Clear**: Call `dump()` to free memory
+- **Prefetch**: Automatically loads common resources on startup
+
+## See Also
+
+- [Engine Access](/api/engine-access) - Using the generation engine
+- [Dimension Access](/api/dimension-access) - Accessing chunk generators

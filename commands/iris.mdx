@@ -1,0 +1,282 @@
+---
+title: /iris Commands
+description: Main Iris commands for world creation and management
+---
+
+The `/iris` command is the main entry point for Iris world management. All subcommands can be accessed via `/iris <subcommand>` or the aliases `/ir` and `/irs`.
+
+## World Management
+
+### Create a World
+
+Create a new Iris world with a specific dimension pack.
+
+```bash
+/iris create <name> [dimension] [seed] [main]
+```
+
+**Parameters:**
+- `name` - The name of the world to create (cannot be "iris" or "benchmark")
+- `dimension` - The dimension type to use (default: `default`)
+- `seed` - The world seed (default: `1337`)
+- `main` - Set as main world on restart (default: `false`)
+
+**Aliases:** `+`, `c`
+
+**Example:**
+```bash
+/iris create MyWorld overworld 12345
+/iris create TestWorld default 1337 main=true
+```
+
+### Remove a World
+
+Remove an Iris world and optionally delete its files.
+
+```bash
+/iris remove <world> [delete]
+```
+
+**Parameters:**
+- `world` - The world to remove
+- `delete` - Also delete world folder (default: `true`)
+
+**Aliases:** `del`, `rm`, `delete`
+
+**Example:**
+```bash
+/iris remove MyWorld
+/iris remove TestWorld delete=false
+```
+
+### Load a World
+
+Load an existing Iris world that isn't currently loaded.
+
+```bash
+/iris loadWorld <world>
+```
+
+**Aliases:** `import`
+
+**Example:**
+```bash
+/iris loadWorld MyWorld
+```
+
+### Unload a World
+
+Unload an Iris world without deleting it.
+
+```bash
+/iris unloadWorld <world>
+```
+
+**Example:**
+```bash
+/iris unloadWorld MyWorld
+```
+
+### Evacuate a World
+
+Teleport all players out of a world.
+
+```bash
+/iris evacuate <world>
+```
+
+**Example:**
+```bash
+/iris evacuate MyWorld
+```
+
+## World Information
+
+### List Worlds
+
+Show all loaded worlds, separated by Iris and non-Iris worlds.
+
+```bash
+/iris worlds
+```
+
+**Aliases:** `accesslist`
+
+### World Height
+
+Display the min/max height of your current world.
+
+```bash
+/iris height
+```
+
+**Example Output:**
+```
+-64 to 320
+Total Height: 384
+```
+
+### World Metrics
+
+Get performance metrics for the current Iris world.
+
+```bash
+/iris metrics
+```
+
+**Aliases:** `measure`
+
+## Teleportation
+
+### Teleport to World
+
+Teleport yourself or another player to a world's spawn.
+
+```bash
+/iris teleport <world> [player]
+```
+
+**Aliases:** `tp`
+
+**Example:**
+```bash
+/iris teleport MyWorld
+/iris tp OtherWorld PlayerName
+```
+
+## Pack Management
+
+### Download a Pack
+
+Download dimension packs from the Iris Dimensions repository.
+
+```bash
+/iris download [pack] [branch] [overwrite]
+```
+
+**Parameters:**
+- `pack` - Pack name (default: `overworld`)
+- `branch` - Git branch (default: `main`)
+- `overwrite` - Overwrite existing pack (default: `false`)
+
+**Aliases:** `dl`
+
+**Example:**
+```bash
+/iris download overworld
+/iris dl custom-pack main overwrite=true
+```
+
+### Update World Pack
+
+<Warning>
+This command is UNSAFE and should only be used with backups! It can cause chunk borders and terrain mismatches.
+</Warning>
+
+Update a world's dimension pack to a different version.
+
+```bash
+/iris ^world <world> <pack> [confirm] [fresh-download]
+```
+
+**Parameters:**
+- `world` - The world to update
+- `pack` - The dimension pack to install
+- `confirm` - Confirm you've read the warnings (default: `false`)
+- `fresh-download` - Download the pack again (default: `false`)
+
+**Aliases:** `update-world`
+
+**Example:**
+```bash
+/iris ^world MyWorld overworld confirm=true
+```
+
+## Utility Commands
+
+### Version Info
+
+Display Iris version information.
+
+```bash
+/iris version
+```
+
+### Studio Shortcut
+
+Quick command to open a studio world for the overworld pack.
+
+```bash
+/iris so
+```
+
+Equivalent to `/studio open overworld 1337`
+
+### Reload Config
+
+Reload Iris configuration files.
+
+```bash
+/iris reload
+```
+
+### Debug Mode
+
+Toggle debug logging.
+
+```bash
+/iris debug [on]
+```
+
+**Parameters:**
+- `on` - Enable/disable debug (toggles if not specified)
+
+**Example:**
+```bash
+/iris debug on=true
+/iris debug
+```
+
+## Advanced Commands
+
+### Aura Configuration
+
+Configure the visual aura effect.
+
+```bash
+/iris aura [h] [s] [b]
+```
+
+**Parameters:**
+- `h` - Hue value (default: `-20`)
+- `s` - Saturation value (default: `7`)
+- `b` - Brightness value (default: `8`)
+
+### Bitwise Calculator
+
+Perform bitwise calculations.
+
+```bash
+/iris bitwise <value1> <operator> <value2>
+```
+
+**Operators:** `|`, `&`, `^`, `>>`, `<<`, `%`
+
+**Example:**
+```bash
+/iris bitwise 5 | 3
+/iris bitwise 8 << 2
+```
+
+## Permission Nodes
+
+```yaml
+iris.command.create
+iris.command.remove
+iris.command.teleport
+iris.command.download
+iris.command.worlds
+iris.command.version
+iris.command.reload
+iris.command.metrics
+```

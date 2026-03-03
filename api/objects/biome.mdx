@@ -1,0 +1,228 @@
+---
+title: Biome
+description: Configuration reference for IrisBiome - individual biome configuration with layers, decorators, objects and generators
+---
+
+Represents a biome in Iris. Biomes are placed inside of regions and hold objects. A biome consists of layers (block palettes), decorations, objects & generators.
+
+## Core Properties
+
+<ParamField path="name" type="string" required>
+  This is the human readable name for this biome. This can and should be different than the file name. This is not used for loading biomes in other objects.
+  
+  **Constraints:** Minimum length 2
+</ParamField>
+
+<ParamField path="rarity" type="integer" default="1">
+  The rarity of this biome (integer)
+  
+  **Constraints:** 1-512
+</ParamField>
+
+<ParamField path="color" type="string">
+  A color for visualizing this biome with a color. I.e. #F13AF5. This will show up on the map.
+</ParamField>
+
+## Biome Derivatives
+
+<ParamField path="derivative" type="Biome" required>
+  The raw derivative of this biome. This is required or the terrain will not properly generate. Use any vanilla biome type. Look in examples/biome-list.txt
+</ParamField>
+
+<ParamField path="vanillaDerivative" type="Biome">
+  Override the derivative when vanilla places structures to this derivative. This is useful for example if you have an ocean biome, but you have set the derivative to desert to get a brown-ish color. To prevent desert structures from spawning on top of your ocean, you can set your vanillaDerivative to ocean. Not defining this value will simply select the derivative.
+</ParamField>
+
+<ParamField path="biomeScatter" type="array<Biome>" default="[]">
+  You can instead specify multiple biome derivatives to randomly scatter colors in this biome
+</ParamField>
+
+<ParamField path="biomeSkyScatter" type="array<Biome>" default="[]">
+  Since 1.13 supports 3D biomes, you can add different derivative colors for anything above the terrain. (Think swampy tree leaves with a desert looking grass surface)
+</ParamField>
+
+<ParamField path="biomeStyle" type="IrisGeneratorStyle" default="SIMPLEX">
+  This changes the dispersion of the biome colors if multiple derivatives are chosen.
+</ParamField>
+
+<ParamField path="customDerivitives" type="array<IrisBiomeCustom>" default="[]">
+  If the biome type custom is defined, specify this
+</ParamField>
+
+## Children Biomes
+
+<ParamField path="children" type="array<string>" default="[]">
+  List any biome names (file names without .json) here as children. Portions of this biome can sometimes morph into their children. Iris supports cyclic relationships such as A > B > A > B. Iris will stop checking 9 biomes down the tree.
+</ParamField>
+
+<ParamField path="childStyle" type="IrisGeneratorStyle" default="CELLULAR_IRIS_DOUBLE">
+  If this biome has children biomes, and the gen layer chooses one of this biomes children, How will it be shaped?
+</ParamField>
+
+<ParamField path="childShrinkFactor" type="number" default="1.5">
+  If this biome has children biomes, and the gen layer chooses one of this biomes children, how much smaller will it be (inside of this biome). Higher values means a smaller biome relative to this biome's size. Set higher than 1.0 and below 3.0 for best results.
+</ParamField>
+
+<ParamField path="carvingBiome" type="string" default="">
+  The carving biome. If specified the biome will be used when under a carving instead of this current biome.
+</ParamField>
+
+## Layers
+
+<ParamField path="layers" type="array<IrisBiomePaletteLayer>" required>
+  This defines the layers of materials in this biome. Each layer has a palette and min/max height and some other properties. Usually a grassy/sandy layer then a dirt layer then a stone layer. Iris will fill in the remaining blocks below your layers with stone.
+</ParamField>
+
+<ParamField path="caveCeilingLayers" type="array<IrisBiomePaletteLayer>" required>
+  This defines the layers of materials for cave ceilings in this biome.
+</ParamField>
+
+<ParamField path="seaLayers" type="array<IrisBiomePaletteLayer>" default="[]">
+  This defines the layers of materials underwater in this biome.
+</ParamField>
+
+<ParamField path="lockLayers" type="boolean" default="false">
+  Layers no longer descend from the surface block, they descend from the max possible height the biome can produce (constant) creating mesa like layers.
+</ParamField>
+
+<ParamField path="lockLayersMax" type="integer" default="7">
+  The max layers to iterate below the surface for locked layer biomes (mesa).
+</ParamField>
+
+<ParamField path="slab" type="IrisBiomePaletteLayer" default="{}">
+  The default slab if iris decides to place a slab in this biome. Default is no slab.
+</ParamField>
+
+<ParamField path="wall" type="IrisBiomePaletteLayer" default="{}">
+  The default wall if iris decides to place a wall higher than 2 blocks (steep hills or possibly cliffs)
+</ParamField>
+
+## Generators
+
+<ParamField path="generators" type="array<IrisBiomeGeneratorLink>" required>
+  Generators for this biome. Multiple generators with different interpolation sizes will mix with other biomes how you would expect. This defines your biome height relative to the fluid height. Use negative for oceans.
+</ParamField>
+
+## Objects
+
+<ParamField path="objects" type="array<IrisObjectPlacement>" default="[]">
+  Objects define what schematics (iob files) iris will place in this biome
+</ParamField>
+
+## Decorators
+
+<ParamField path="decorators" type="array<IrisDecorator>" default="[]">
+  Decorators are used for things like tall grass, bisected flowers, and even kelp or cactus (random heights)
+</ParamField>
+
+## World Features
+
+<ParamField path="carving" type="IrisCarving" default="{}">
+  Carving configuration for the biome (caves, ravines, etc)
+</ParamField>
+
+<ParamField path="fluidBodies" type="IrisFluidBodies" default="{}">
+  Configuration of fluid bodies such as rivers & lakes
+</ParamField>
+
+<ParamField path="deposits" type="array<IrisDepositGenerator>" default="[]">
+  Define biome deposit generators that add onto the existing regional and global deposit generators
+</ParamField>
+
+<ParamField path="ores" type="array<IrisOreGenerator>" default="[]">
+  Collection of ores to be generated
+</ParamField>
+
+## Structures
+
+<ParamField path="jigsawStructures" type="array<IrisJigsawStructurePlacement>" default="[]">
+  Jigsaw structures
+</ParamField>
+
+## Effects & Ambience
+
+<ParamField path="effects" type="array<IrisEffect>" default="[]">
+  Effects are ambient effects such as potion effects, random sounds, or even particles around each player. All of these effects are played via packets so two players won't see/hear each others effects. Due to performance reasons, effects will play around the player even if where the effect was played is no longer in the biome the player is in.
+</ParamField>
+
+## Entities
+
+<ParamField path="entitySpawners" type="array<string>" default="[]">
+  Spawn Entities in this area over time. Iris will continually replenish these mobs just like vanilla does.
+</ParamField>
+
+## Loot & Block Drops
+
+<ParamField path="loot" type="IrisLootReference" default="{}">
+  Reference loot tables in this area
+</ParamField>
+
+<ParamField path="blockDrops" type="array<IrisBlockDrops>" default="[]">
+  Define custom block drops for this biome
+</ParamField>
+
+## JSON Example
+
+```json
+{
+  "name": "Plains",
+  "rarity": 1,
+  "derivative": "PLAINS",
+  "color": "#8DB360",
+  "layers": [
+    {
+      "minHeight": 1,
+      "maxHeight": 1,
+      "palette": [
+        {"block": "grass_block"}
+      ]
+    },
+    {
+      "minHeight": 2,
+      "maxHeight": 4,
+      "palette": [
+        {"block": "dirt"}
+      ]
+    },
+    {
+      "minHeight": 6,
+      "maxHeight": 18,
+      "palette": [
+        {"block": "stone"}
+      ]
+    }
+  ],
+  "caveCeilingLayers": [
+    {
+      "minHeight": 1,
+      "maxHeight": 3,
+      "palette": [
+        {"block": "stone"}
+      ]
+    }
+  ],
+  "generators": [
+    {
+      "generator": "plains-terrain",
+      "min": 2,
+      "max": 8
+    }
+  ],
+  "decorators": [
+    {
+      "chance": 0.1,
+      "palette": [
+        {"block": "grass"},
+        {"block": "tall_grass"}
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "place": ["tree/oak"],
+      "chance": 0.05,
+      "density": 1
+    }
+  ]
+}
+```

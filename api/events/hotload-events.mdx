@@ -1,0 +1,153 @@
+---
+title: IrisEngineHotloadEvent
+description: Event fired when an Iris engine hotloads dimension data
+---
+
+## Overview
+
+`IrisEngineHotloadEvent` extends `IrisEngineEvent` and is fired when an Iris engine performs a hotload operation, reloading dimension data without requiring a server restart.
+
+## Event Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `engine` | `Engine` | The Iris engine instance that was hotloaded |
+
+*Inherits all properties from `IrisEngineEvent`*
+
+## When It Fires
+
+This event fires when:
+- A developer uses `/iris hotload` command
+- Dimension configuration files are reloaded at runtime
+- Changes to biomes, objects, or other dimension data are applied without restart
+
+## Important Notes
+
+- This event is **asynchronous** (inherited from `IrisEngineEvent`)
+- Cannot be cancelled
+- Useful for clearing caches or reloading custom integrations when dimension data changes
+
+## Event Handler Examples
+
+### Basic Hotload Detection
+
+```java
+import com.volmit.iris.core.events.IrisEngineHotloadEvent;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+
+public class HotloadListener implements Listener {
+    
+    @EventHandler
+    public void onEngineHotload(IrisEngineHotloadEvent event) {
+        Engine engine = event.getEngine();
+        
+        // Log the hotload event
+        String dimension = engine.getDimension().getName();
+        System.out.println("Engine hotloaded for dimension: " + dimension);
+        
+        // Refresh any cached dimension data
+        refreshDimensionCache(dimension);
+    }
+    
+    private void refreshDimensionCache(String dimension) {
+        // Clear your plugin's cached data for this dimension
+    }
+}
+```
+
+### Clear Custom Caches
+
+```java
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class CustomDataListener implements Listener {
+    private final Map<String, CustomData> dimensionCache = new ConcurrentHashMap<>();
+    
+    @EventHandler
+    public void onEngineHotload(IrisEngineHotloadEvent event) {
+        Engine engine = event.getEngine();
+        String dimension = engine.getDimension().getName();
+        
+        // Clear cached data for the hotloaded dimension
+        dimensionCache.remove(dimension);
+        
+        // Optionally reload custom data
+        loadCustomData(engine, dimension);
+    }
+    
+    private void loadCustomData(Engine engine, String dimension) {
+        // Load your custom data based on the new dimension configuration
+        CustomData data = new CustomData(engine);
+        dimensionCache.put(dimension, data);
+    }
+}
+```
+
+### Notify Online Players
+
+```java
+@EventHandler
+public void onEngineHotload(IrisEngineHotloadEvent event) {
+    Engine engine = event.getEngine();
+    World world = engine.getWorld();
+    
+    // Notify players in the affected world
+    if (world != null) {
+        for (Player player : world.getPlayers()) {
+            if (player.hasPermission("iris.notify.hotload")) {
+                player.sendMessage(ChatColor.GREEN + 
+                    "Iris dimension data has been hotloaded!");
+            }
+        }
+    }
+}
+```
+
+### Reload Custom Generators
+
+```java
+public class GeneratorIntegration implements Listener {
+    private final Map<Engine, CustomGenerator> generators = new HashMap<>();
+    
+    @EventHandler
+    public void onEngineHotload(IrisEngineHotloadEvent event) {
+        Engine engine = event.getEngine();
+        
+        // Remove old generator instance
+        CustomGenerator oldGen = generators.remove(engine);
+        if (oldGen != null) {
+            oldGen.cleanup();
+        }
+        
+        // Create new generator with updated dimension data
+        CustomGenerator newGen = new CustomGenerator(engine);
+        generators.put(engine, newGen);
+    }
+}
+```
+
+## Comparison with IrisEngineEvent
+
+| Feature | IrisEngineEvent | IrisEngineHotloadEvent |
+|---------|----------------|------------------------|
+| When fired | General engine operations | Specifically on hotload |
+| Use case | Monitor all engine events | React to configuration reloads |
+| Specificity | Broad | Narrow |
+
+## Registering the Event
+
+Register your listener in your plugin's `onEnable()` method:
+
+```java
+@Override
+public void onEnable() {
+    getServer().getPluginManager().registerEvents(new HotloadListener(), this);
+}
+```
+
+## Source Code Reference
+
+Location: `core/src/main/java/com/volmit/iris/core/events/IrisEngineHotloadEvent.java`

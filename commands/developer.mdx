@@ -1,0 +1,346 @@
+---
+title: Developer Commands
+description: Advanced commands for pack development, debugging, and testing
+---
+
+The `/developer` (or `/dev`) commands provide advanced tools for dimension pack development, debugging, and system diagnostics.
+
+<Warning>
+These commands are intended for advanced users and developers. Some commands can affect server performance or stability.
+</Warning>
+
+## Engine Diagnostics
+
+### Engine Status
+
+Get detailed information about loaded Iris engines.
+
+```bash
+/dev EngineStatus
+```
+
+Displays:
+- Number of loaded engines
+- Active tectonic plates
+- Memory usage per engine
+- World information
+
+### Send Test Exception
+
+Send a test exception to error tracking (Sentry).
+
+```bash
+/dev Sentry
+```
+
+Useful for testing error reporting integration.
+
+## Object Management
+
+### Fix Objects
+
+Fix broken objects caused by faulty shrinkwrap.
+
+```bash
+/dev fixObjects <dimension>
+```
+
+**Parameters:**
+- `dimension` - The dimension pack to fix objects in
+
+**Example:**
+```bash
+/dev fixObjects overworld
+```
+
+This command:
+- Scans all objects in the dimension
+- Recalculates shrinkwrap offsets
+- Updates jigsaw piece connectors
+- Saves corrected objects
+
+### Validate Objects
+
+Check all objects in a dimension for loading errors.
+
+```bash
+/dev objects [dimension]
+```
+
+**Parameters:**
+- `dimension` - Dimension to check (default: `overworld`)
+
+**Example:**
+```bash
+/dev objects overworld
+```
+
+Reports how many objects failed to load.
+
+## World Operations
+
+### Unload Chunks
+
+Unload all chunks from loaded Iris worlds.
+
+```bash
+/dev unloadchunks
+```
+
+Useful for:
+- Freeing memory
+- Testing chunk loading
+- Diagnosing memory leaks
+
+## Benchmarking
+
+### Pack Benchmark
+
+Run a comprehensive benchmark on a dimension pack.
+
+```bash
+/dev packBenchmark [pack] [radius] [gui]
+```
+
+**Parameters:**
+- `pack` - Pack to benchmark (default: `overworld`)
+- `radius` - Radius in regions (default: `2048`)
+- `gui` - Open GUI during benchmark (default: `false`)
+
+**Example:**
+```bash
+/dev packBenchmark overworld 1024
+/dev packBenchmark custom-pack 2048 gui=true
+```
+
+Benchmarks:
+- Generation speed
+- Memory usage
+- Noise performance
+- Feature placement timing
+
+### Compression Test
+
+Test compression algorithms on tectonic plate data.
+
+```bash
+/dev compression <world> <path> <algorithm> <amount> [versioned]
+```
+
+**Parameters:**
+- `world` - Base Iris world
+- `path` - Path to raw tectonic plate file
+- `algorithm` - Algorithm to test (`gzip`, `lz4f`, `lz4b`)
+- `amount` - Number of test iterations
+- `versioned` - Use versioned format (default: `false`)
+
+**Example:**
+```bash
+/dev compression MyWorld /path/to/plate.bin lz4b 100
+```
+
+## Structure Generation
+
+### Generate Structures
+
+Generate Iris structure files for all loaded datapack structures.
+
+```bash
+/dev generateStructures [dimension] [force]
+```
+
+**Parameters:**
+- `dimension` - Pack to add structures to (creates new if null)
+- `force` - Ignore existing structures (default: `false`)
+
+**Example:**
+```bash
+/dev generateStructures overworld
+/dev generateStructures custom-pack force=true
+```
+
+This command:
+- Scans all loaded datapack structures
+- Creates Iris jigsaw-structure files
+- Generates placement snippets
+- Updates dimension configuration
+
+## Data Management
+
+### Mantle Operations
+
+Read and test mantle data structures.
+
+```bash
+/dev mantle [plate] [name]
+```
+
+**Parameters:**
+- `plate` - Read as tectonic plate (default: `false`)
+- `name` - File identifier (default: `21474836474`)
+
+**Example:**
+```bash
+/dev mantle plate=true custom-name
+```
+
+### Dump Threads
+
+Create a thread dump for debugging.
+
+```bash
+/dev dumpThreads
+```
+
+Generates a detailed file with:
+- All active threads
+- Stack traces
+- Thread states
+- Memory information
+
+Saved to `plugins/Iris/dump/td-<timestamp>.txt`
+
+## MCA Operations
+
+### Read MCA Files
+
+Read and parse Minecraft region files.
+
+```bash
+/dev mca <world>
+```
+
+**Parameters:**
+- `world` - Path to world directory
+
+**Example:**
+```bash
+/dev mca /path/to/world
+```
+
+## Version Management
+
+### Upgrade Minecraft Version
+
+Upgrade server datapacks to a different Minecraft version.
+
+```bash
+/dev upgrade [version]
+```
+
+**Parameters:**
+- `version` - Target version (default: `latest`)
+
+**Example:**
+```bash
+/dev upgrade latest
+/dev upgrade 1.20.1
+```
+
+<Warning>
+This upgrades datapacks only. You must still update your server JAR separately.
+</Warning>
+
+## Network Diagnostics
+
+### Network Information
+
+Display network interface information.
+
+```bash
+/dev network
+```
+
+**Aliases:** `ip`
+
+Shows:
+- Network interfaces
+- IP addresses
+- Interface display names
+
+## Integration with Other Commands
+
+Developer commands integrate with:
+- **Lazy Pregen** - Accessible via `/dev lazyPregen`
+- **Turbo Pregen** - Accessible via `/dev turboPregen`
+
+These provide direct access to pregeneration from the developer command tree.
+
+## Debug Output
+
+Many developer commands produce detailed console output. Enable debug mode for maximum detail:
+
+```bash
+/iris debug on=true
+```
+
+## Performance Considerations
+
+### Resource-Intensive Commands
+These commands can impact server performance:
+- `packBenchmark` - High CPU usage
+- `compression` - Disk I/O intensive
+- `generateStructures` - Memory intensive for large packs
+- `unloadchunks` - Can cause temporary lag spike
+
+### Safe for Production
+These commands are safe to run on live servers:
+- `EngineStatus` - Read-only diagnostic
+- `network` - Simple information query
+- `dumpThreads` - Minimal performance impact
+
+## Error Reporting
+
+When using developer commands, errors are:
+1. Logged to console
+2. Sent to error tracking (if configured)
+3. Returned to command sender
+
+Always check console logs for detailed error information.
+
+## Best Practices
+
+### Before Using Developer Commands
+1. **Backup** - Create backups before running destructive operations
+2. **Test** - Use test servers for experimental commands
+3. **Monitor** - Watch server performance during intensive operations
+4. **Read output** - Check console for warnings and errors
+
+### Common Workflows
+
+#### Diagnosing Performance Issues
+```bash
+/dev EngineStatus
+/dev dumpThreads
+/iris metrics
+```
+
+#### Fixing Object Issues
+```bash
+/dev objects overworld
+/dev fixObjects overworld
+```
+
+#### Testing New Structures
+```bash
+/dev generateStructures test-pack
+/studio open test-pack
+/studio hotload
+```
+
+## Permission Nodes
+
+```yaml
+iris.command.developer.enginestatus
+iris.command.developer.sentry
+iris.command.developer.fixobjects
+iris.command.developer.packbenchmark
+iris.command.developer.generatestructures
+iris.command.developer.upgrade
+iris.command.developer.dumpthreads
+iris.command.developer.unloadchunks
+```
+
+<Note>
+Developer commands require appropriate permissions. Consider restricting access to administrators and developers only.
+</Note>

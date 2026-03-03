@@ -1,0 +1,163 @@
+---
+title: Generator
+description: Configuration reference for IrisGenerator - composite noise generator for terrain height
+---
+
+Represents a composite generator of noise generators. Generators are used to define terrain height and shape through layered noise functions.
+
+## Core Properties
+
+<ParamField path="seed" type="long" required>
+  The seed for this generator
+</ParamField>
+
+<ParamField path="zoom" type="number" default="1">
+  The zoom or frequency.
+  
+  **Constraints:** Minimum 0.001
+</ParamField>
+
+<ParamField path="opacity" type="number" default="1">
+  The opacity, essentially a multiplier on the output.
+  
+  **Constraints:** Minimum 0
+</ParamField>
+
+## Composite Configuration
+
+<ParamField path="composite" type="array<IrisNoiseGenerator>" default="[]">
+  The list of noise gens this gen contains.
+</ParamField>
+
+<ParamField path="multiplicitive" type="boolean" default="false">
+  Multiply the composites instead of adding them
+</ParamField>
+
+## Offset
+
+<ParamField path="offsetX" type="number" default="0">
+  The offset to shift this noise x
+</ParamField>
+
+<ParamField path="offsetZ" type="number" default="0">
+  The offset to shift this noise z
+</ParamField>
+
+## Interpolation
+
+<ParamField path="interpolator" type="IrisInterpolator" required>
+  The interpolator to use when smoothing this generator into other regions & generators
+</ParamField>
+
+## Cliff Features
+
+<ParamField path="cliffHeightMin" type="number" default="0">
+  Cliff Height Min. Disable with 0 for min and max
+  
+  **Constraints:** 0-8192
+</ParamField>
+
+<ParamField path="cliffHeightMax" type="number" default="0">
+  Cliff Height Max. Disable with 0 for min and max
+  
+  **Constraints:** 0-8192
+</ParamField>
+
+<ParamField path="cliffHeightGenerator" type="IrisNoiseGenerator" default="{}">
+  The noise gen for cliff height.
+</ParamField>
+
+## Cell Fracture
+
+<ParamField path="cellFractureHeight" type="number" default="0">
+  The height of fracture cells. Set to 0 to disable
+</ParamField>
+
+<ParamField path="cellFractureZoom" type="number" default="1">
+  The size of the cell fractures
+  
+  **Constraints:** Minimum 0.001
+</ParamField>
+
+<ParamField path="cellFractureShuffle" type="number" default="12">
+  Cell Fracture Coordinate Shuffling
+  
+  **Constraints:** Minimum 0
+</ParamField>
+
+<ParamField path="cellPercentSize" type="number" default="0.75">
+  How big are the cells (X,Z) relative to the veins that touch them. Between 0 and 1. 0.1 means thick veins, small cells.
+  
+  **Constraints:** 0-1
+</ParamField>
+
+## JSON Example
+
+```json
+{
+  "seed": 1234567890,
+  "zoom": 1.0,
+  "opacity": 1.0,
+  "multiplicitive": false,
+  "offsetX": 0,
+  "offsetZ": 0,
+  "interpolator": {
+    "function": "HERMITE",
+    "horizontalScale": 48
+  },
+  "composite": [
+    {
+      "style": "SIMPLEX",
+      "zoom": 1.0,
+      "opacity": 1.0
+    },
+    {
+      "style": "PERLIN",
+      "zoom": 0.5,
+      "opacity": 0.5
+    }
+  ],
+  "cliffHeightMin": 0,
+  "cliffHeightMax": 0,
+  "cellFractureHeight": 0,
+  "cellFractureZoom": 1.0,
+  "cellFractureShuffle": 12,
+  "cellPercentSize": 0.75
+}
+```
+
+## Usage Notes
+
+### Compositing Noise
+
+Generators combine multiple noise functions through the `composite` array. By default, noise values are added together and normalized. Set `multiplicitive` to `true` to multiply noise values instead.
+
+### Cliff Generation
+
+Cliffs create stepped terrain by quantizing height values. When `cliffHeightMin` and `cliffHeightMax` are both greater than 0, the generator will create distinct height bands:
+
+```json
+{
+  "cliffHeightMin": 4,
+  "cliffHeightMax": 8,
+  "cliffHeightGenerator": {
+    "style": "SIMPLEX",
+    "zoom": 0.25
+  }
+}
+```
+
+### Cell Fracture
+
+Cell fracture creates a cellular/voronoi pattern that can be used for plateaus or fractured terrain:
+
+```json
+{
+  "cellFractureHeight": 0.3,
+  "cellFractureZoom": 2.0,
+  "cellFractureShuffle": 16,
+  "cellPercentSize": 0.85
+}
+```
+
+A lower `cellPercentSize` creates thicker veins between cells.

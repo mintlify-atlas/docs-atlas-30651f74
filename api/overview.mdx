@@ -1,0 +1,73 @@
+---
+title: API Overview
+description: Public API for integrating Iris into your plugin
+---
+
+Iris provides a public API for plugin developers to interact with Iris worlds, create new worlds, and access generation data.
+
+## Main Components
+
+### IrisToolbelt
+
+The primary entry point for the Iris API. This class provides utility methods for working with Iris worlds.
+
+**Package:** `com.volmit.iris.core.tools`
+
+### Key Features
+
+- **World Detection** - Check if a world is using Iris
+- **World Creation** - Programmatically create new Iris worlds
+- **Data Access** - Access generation engines and dimension data
+- **Pregeneration** - Start and manage chunk pregeneration tasks
+- **Player Management** - Evacuate players from worlds
+- **Mantle Data** - Store and retrieve custom data at specific coordinates
+
+## Common Use Cases
+
+### Check if a World Uses Iris
+
+```java
+World world = Bukkit.getWorld("myworld");
+if (IrisToolbelt.isIrisWorld(world)) {
+    // This is an Iris world
+}
+```
+
+### Access Iris Generator
+
+```java
+PlatformChunkGenerator generator = IrisToolbelt.access(world);
+if (generator != null) {
+    // Access the engine
+    Engine engine = generator.getEngine();
+    
+    // Get dimension data
+    IrisDataManager data = generator.getCompound().getData();
+}
+```
+
+### Get Dimension Information
+
+```java
+// Load a dimension by name or GitHub repo
+IrisDimension dimension = IrisToolbelt.getDimension("overworld");
+
+// Also supports GitHub repos:
+// IrisToolbelt.getDimension("IrisDimensions/overworld")
+// IrisToolbelt.getDimension("IrisDimensions/overworld/main")
+```
+
+## API Stability
+
+The public API is designed to remain stable across minor versions. Methods marked with `@ApiStatus.Internal` should not be used as they may change without notice.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Integration Guide" icon="plug" href="/api/integration">
+    Add Iris as a dependency to your project
+  </Card>
+  <Card title="IrisToolbelt Reference" icon="wrench" href="/api/toolbelt">
+    Complete method reference for IrisToolbelt
+  </Card>
+</CardGroup>
