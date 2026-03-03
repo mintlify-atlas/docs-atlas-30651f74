@@ -1,0 +1,153 @@
+{
+  "projectType": "framework",
+  "projectName": "Iris",
+  "projectDescription": "Advanced world generation framework for Minecraft with data-driven dimensions, biomes, and custom terrain",
+  "theme": "aspen",
+  "primaryColor": "#7C3AED",
+  "lightColor": "#A78BFA",
+  "darkColor": "#5B21B6",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart",
+              "configuration"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/dimensions",
+              "concepts/regions",
+              "concepts/biomes",
+              "concepts/objects",
+              "concepts/generators",
+              "concepts/noise"
+            ]
+          },
+          {
+            "group": "World Generation",
+            "pages": [
+              "generation/creating-worlds",
+              "generation/pregeneration",
+              "generation/terrain-editing",
+              "generation/studio-mode"
+            ]
+          },
+          {
+            "group": "Content Creation",
+            "pages": [
+              "content/dimensions-guide",
+              "content/biomes-guide",
+              "content/regions-guide",
+              "content/objects-guide",
+              "content/decorators",
+              "content/loot-tables",
+              "content/entity-spawners"
+            ]
+          },
+          {
+            "group": "Advanced Features",
+            "pages": [
+              "advanced/jigsaw-structures",
+              "advanced/caves-ravines",
+              "advanced/custom-effects",
+              "advanced/expressions",
+              "advanced/data-packs"
+            ]
+          },
+          {
+            "group": "Commands",
+            "pages": [
+              "commands/overview",
+              "commands/iris",
+              "commands/studio",
+              "commands/pregeneration",
+              "commands/developer"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "api/overview",
+              "api/integration",
+              "api/toolbelt"
+            ]
+          },
+          {
+            "group": "Core API",
+            "pages": [
+              "api/world-creation",
+              "api/dimension-access",
+              "api/engine-access",
+              "api/data-loader"
+            ]
+          },
+          {
+            "group": "Object Types",
+            "pages": [
+              "api/objects/dimension",
+              "api/objects/region",
+              "api/objects/biome",
+              "api/objects/generator",
+              "api/objects/object-placement"
+            ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "api/events/engine-events",
+              "api/events/loot-events",
+              "api/events/hotload-events"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Data-driven world generation with JSON configuration",
+    "Advanced noise-based terrain generation",
+    "Hierarchical region, biome, and object system",
+    "Jigsaw structure placement system",
+    "Studio mode for real-time world editing",
+    "Multi-threaded world pregeneration",
+    "Custom entity spawning and loot tables",
+    "Expression-based dynamic generation",
+    "Cave, ravine, and lake generation",
+    "Custom effects and particles per biome"
+  ],
+  "publicApiSurface": [
+    "IrisToolbelt.createWorld()",
+    "IrisToolbelt.access(World)",
+    "IrisToolbelt.isIrisWorld(World)",
+    "IrisToolbelt.getDimension(String)",
+    "IrisToolbelt.pregenerate(PregenTask, PregeneratorMethod, Engine)",
+    "IrisToolbelt.evacuate(World)",
+    "IrisAccess.getCompound().getData()",
+    "IrisAccess.getCompound().getDefaultEngine()",
+    "IrisAccess.getCompound().getEngineForHeight(int)",
+    "IrisCreator.name(String)",
+    "IrisCreator.dimension(String)",
+    "IrisCreator.seed(long)",
+    "IrisCreator.pregen(PregenTask)",
+    "IrisCreator.create()",
+    "/iris studio",
+    "/iris create <world> <dimension>",
+    "/iris pregen <world> <radius>",
+    "/iris what",
+    "/iris edit",
+    "/iris object place <object>"
+  ]
+}
